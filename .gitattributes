@@ -1,0 +1,2 @@
+# Preserve source hashes and generated snapshot bytes on every platform.
+public/data/** -text
