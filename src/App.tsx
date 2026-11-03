@@ -5,9 +5,7 @@ import {
   BookOpen,
   CarFront,
   ChartNoAxesCombined,
-  ChevronRight,
   CircleHelp,
-  Compass,
   FlaskConical,
   House,
   Info,
@@ -37,8 +35,8 @@ type Page =
   | "metodologia";
 const navigation: { id: Page; label: string; Icon: LucideIcon }[] = [
   { id: "inicio", label: "Inicio", Icon: House },
-  { id: "mapa", label: "Mapa territorial", Icon: Map },
-  { id: "analisis", label: "Análisis del aire", Icon: ChartNoAxesCombined },
+  { id: "mapa", label: "Mapa", Icon: Map },
+  { id: "analisis", label: "Análisis", Icon: ChartNoAxesCombined },
   { id: "intervenciones", label: "Intervenciones", Icon: Leaf },
   { id: "simulador", label: "Simulador", Icon: FlaskConical },
   { id: "metodologia", label: "Metodología", Icon: BookOpen },
@@ -161,6 +159,7 @@ export default function App() {
     [error, setError] = useState(false),
     [retry, setRetry] = useState(0);
   const main = useRef<HTMLElement>(null);
+  const menuButton = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     const change = () => {
       setPage(currentPage());
@@ -203,80 +202,66 @@ export default function App() {
       >
         Saltar al contenido
       </a>
-      <button
-        className="mobile-menu"
-        aria-label={mobile ? "Cerrar menú" : "Abrir menú"}
-        aria-expanded={mobile}
-        onClick={() => setMobile(!mobile)}
+      <header
+        className={`app-header ${mobile ? "menu-open" : ""}`}
+        onKeyDown={(event) => {
+          if (event.key === "Escape") {
+            setMobile(false);
+            menuButton.current?.focus();
+          }
+        }}
       >
-        {mobile ? <X /> : <Menu />}
-        <span>AirSense</span>
-      </button>
-      {mobile && (
-        <button
-          className="menu-overlay"
-          aria-label="Cerrar menú"
-          onClick={() => setMobile(false)}
-        />
-      )}
-      <aside className={`sidebar ${mobile ? "open" : ""}`}>
-        <a className="brand" href="#inicio">
-          <span>
-            <Wind size={27} />
-          </span>
-          AirSense
-          <i />
-        </a>
-        <div className="brand-caption">AIRE, DATOS Y CIUDAD</div>
-        <div className="nav-label">EXPLORAR LA PLATAFORMA</div>
-        <nav aria-label="Navegación principal">
-          {navigation.map(({ id, label, Icon }) => (
-            <a
-              key={id}
-              href={`#${id}`}
-              aria-current={page === id ? "page" : undefined}
-              className={page === id ? "active" : ""}
-            >
-              <Icon size={19} />
-              <span>{label}</span>
-              {page === id && <ChevronRight size={15} />}
-            </a>
-          ))}
-        </nav>
-        <div className="sidebar-bottom">
-          <div className="snapshot-status">
-            <span /> SNAPSHOT HISTÓRICO<strong>Enero 2026</strong>
-            <small>Datos oficiales, lectura local.</small>
-          </div>
-          <div className="university">
-            <strong>
-              UADE<span>SEMINARIO 2</span>
-            </strong>
-            <p>Tecnología y Medio Ambiente</p>
-            <small>Prototipo académico · 2026</small>
+        <div className="header-inner">
+          <a className="brand" href="#inicio" aria-label="AirSense · Inicio">
+            <Wind size={30} strokeWidth={1.7} />
+            <span>
+              AirSense<small>OBSERVATORIO CABA</small>
+            </span>
+          </a>
+          <button
+            ref={menuButton}
+            className="mobile-menu"
+            aria-label={mobile ? "Cerrar menú" : "Abrir menú"}
+            aria-expanded={mobile}
+            aria-controls="main-navigation"
+            onClick={() => setMobile(!mobile)}
+          >
+            {mobile ? <X size={22} /> : <Menu size={22} />}
+            <span>Menú</span>
+          </button>
+          <nav id="main-navigation" aria-label="Navegación principal">
+            {navigation.map(({ id, label, Icon }) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                onClick={() => setMobile(false)}
+                aria-current={page === id ? "page" : undefined}
+                className={page === id ? "active" : ""}
+              >
+                <Icon size={17} />
+                <span>{label}</span>
+              </a>
+            ))}
+          </nav>
+          <a
+            className="header-source"
+            href="#metodologia"
+            aria-label="Fuentes y metodología"
+          >
+            <CircleHelp size={19} />
+            <span>Fuentes</span>
+          </a>
+        </div>
+        <div className="context-strip">
+          <div>
+            <span>Ciudad de Buenos Aires</span>
+            <span>
+              <i /> Enero 2026 · datos históricos locales
+            </span>
           </div>
         </div>
-      </aside>
+      </header>
       <div className="workspace">
-        <header className="topbar">
-          <div>
-            <span className="topbar-city">CABA</span>
-            <ChevronRight size={13} />
-            <span>Observatorio ambiental</span>
-          </div>
-          <div>
-            <span className="snapshot-chip">
-              <span /> Enero 2026 · snapshot local
-            </span>
-            <a
-              href="#metodologia"
-              aria-label="Ayuda y metodología"
-              className="help-button"
-            >
-              <CircleHelp size={19} />
-            </a>
-          </div>
-        </header>
         <main id="main" ref={main} tabIndex={-1}>
           {error ? (
             <section className="panel empty-state" role="alert">
@@ -304,7 +289,9 @@ export default function App() {
             </section>
           ) : (
             <>
-              {page === "inicio" && <Home data={data} />}
+              {page === "inicio" && (
+                <Home data={data} setSelected={setSelected} />
+              )}
               {page === "mapa" && (
                 <MapView
                   {...data}
@@ -331,8 +318,8 @@ export default function App() {
           )}
           <footer className="footer">
             <span>
-              <Wind size={15} /> AirSense · Una mirada informada sobre el aire
-              urbano.
+              <Wind size={17} /> AirSense{" "}
+              <span className="footer-separator">/</span> UADE · Seminario 2
             </span>
             <a href="#metodologia">
               Fuentes, supuestos y límites <ArrowUpRight size={13} />
@@ -343,182 +330,213 @@ export default function App() {
     </div>
   );
 }
-function Home({ data }: { data: Data }) {
+function Home({
+  data,
+  setSelected,
+}: {
+  data: Data;
+  setSelected: (id: StationId) => void;
+}) {
   return (
     <>
       <div className="page-heading home-heading">
         <div>
-          <div className="eyebrow">OBSERVATORIO AMBIENTAL DE BUENOS AIRES</div>
+          <div className="eyebrow">OBSERVATORIO AMBIENTAL · CABA</div>
           <h1>
-            Entender el aire.
+            Calidad del aire
             <br />
-            <span>Imaginar una mejor ciudad.</span>
+            en Buenos Aires
           </h1>
           <p>
-            Datos públicos para explorar la calidad del aire, reconocer brechas
-            <br className="desktop-break" /> de información y poner a prueba
-            escenarios ambientales.
+            Explorá mediciones oficiales, reconocé los límites del monitoreo y
+            compará intervenciones con supuestos a la vista.
           </p>
         </div>
-        <Badge>DATOS OFICIALES · MIRADA ACADÉMICA</Badge>
-      </div>
-      <section className="hero-panel">
-        <div className="hero-copy">
-          <div className="eyebrow">DE LA MEDICIÓN A LA PREGUNTA</div>
-          <h2>
-            Lo que sabemos.
-            <br />
-            Lo que falta por medir.
-          </h2>
-          <p>
-            La contaminación urbana combina fuentes, clima y territorio. Tres
-            estaciones aportan una mirada valiosa, pero no describen el aire de
-            cada cuadra.
-          </p>
+        <div className="home-actions">
           <a className="button" href="#mapa">
-            Explorar el mapa <ArrowRight size={17} />
+            Explorar mapa <ArrowRight size={18} />
           </a>
-          <a className="hero-method" href="#metodologia">
-            Conocer la metodología <ArrowUpRight size={15} />
+          <a className="button secondary" href="#analisis">
+            Consultar series <ChartNoAxesCombined size={18} />
           </a>
         </div>
-        <div className="city-art" aria-hidden="true">
-          <div className="art-orbit orbit-one" />
-          <div className="art-orbit orbit-two" />
-          <div className="art-wind">
-            <Wind size={68} strokeWidth={1} />
+      </div>
+      <section
+        className="home-overview"
+        aria-label="Datos disponibles del observatorio"
+      >
+        <div className="overview-section station-overview">
+          <div className="overview-heading">
+            <Radio size={21} />
+            <h2>Estaciones del catálogo</h2>
+            <Badge>OBSERVADO</Badge>
           </div>
-          <div className="art-caption">
-            <span /> CIUDAD AUTÓNOMA DE BUENOS AIRES
+          <p className="overview-lead">
+            <strong>{data.stations.length}</strong> puntos con series históricas
+            locales
+          </p>
+          <div className="home-stations">
+            {data.stations.map((s) => (
+              <a href="#mapa" key={s.id} onClick={() => setSelected(s.id)}>
+                <span className="station-index">
+                  <Radio size={17} />
+                </span>
+                <span>
+                  <strong>{s.name}</strong>
+                  <small>{s.address}</small>
+                </span>
+                <span className="station-commune">C{s.commune}</span>
+                <ArrowUpRight size={17} />
+              </a>
+            ))}
           </div>
-          <div className="building b1" />
-          <div className="building b2" />
-          <div className="building b3" />
-          <div className="building b4" />
-          <div className="building b5" />
-          <div className="building b6" />
-          <div className="art-tree t1">
-            <Trees size={78} strokeWidth={1.1} />
+          <p className="overview-footnote">
+            Catálogo seleccionado; no representa necesariamente la red vigente
+            completa.
+          </p>
+        </div>
+        <div className="overview-section pollutant-overview">
+          <div className="overview-heading">
+            <Wind size={21} />
+            <h2>Series de enero 2026</h2>
           </div>
-          <div className="art-tree t2">
-            <Trees size={58} strokeWidth={1.2} />
+          <p className="overview-lead">
+            Tres contaminantes, unidades originales.
+          </p>
+          <div className="pollutant-list">
+            <div>
+              <strong>
+                CO <span>ppm</span>
+              </strong>
+              <span>Promedio móvil de 8 horas</span>
+            </div>
+            <div>
+              <strong>
+                NO₂ <span>ppb</span>
+              </strong>
+              <span>Promedio horario</span>
+            </div>
+            <div>
+              <strong>
+                PM10 <span>µg/m³</span>
+              </strong>
+              <span>Promedio móvil de 24 horas</span>
+            </div>
           </div>
-          <div className="art-sensor">
-            <Radio size={22} />
-            <span>MEDIR PARA COMPRENDER</span>
+          <a className="method-link" href="#analisis">
+            Ver series y disponibilidad <ArrowRight size={16} />
+          </a>
+        </div>
+        <div className="overview-section territory-overview">
+          <div className="overview-heading">
+            <Map size={21} />
+            <h2>Presencia territorial</h2>
           </div>
-          <div className="ground-line" />
+          <div className="home-territory-value">
+            {data.territory.filter((t) => t.stations.length).length}
+            <span>/ {data.territory.length}</span>
+            <Badge kind="calculated">CALCULADO</Badge>
+          </div>
+          <p>comunas con puntos del catálogo</p>
+          <div
+            className="commune-grid"
+            aria-label="Comunas con puntos: 1, 4 y 6"
+          >
+            {data.territory.map((t) => (
+              <span
+                key={t.commune}
+                className={t.stations.length ? "occupied" : ""}
+                title={`Comuna ${t.commune}: ${t.stations.length ? "con punto" : "sin punto del catálogo"}`}
+              >
+                {t.commune}
+              </span>
+            ))}
+          </div>
+          <p className="overview-footnote">
+            Presencia de puntos, no cobertura de calidad del aire ni exposición
+            de la población.
+          </p>
+          <a className="method-link" href="#mapa">
+            Explorar el territorio <ArrowRight size={16} />
+          </a>
         </div>
       </section>
-      <div className="section-title">
-        <div>
-          <div className="eyebrow">TRES DIMENSIONES, UNA MISMA PREGUNTA</div>
-          <h2>¿Cómo tomar mejores decisiones?</h2>
-        </div>
-        <a href="#metodologia">
-          Leer los límites del modelo <ArrowUpRight size={15} />
-        </a>
-      </div>
-      <div className="dimension-grid">
-        <a className="panel dimension-card" href="#analisis">
-          <div className="card-icon">
-            <Wind size={23} />
-          </div>
-          <Badge>OBSERVADO</Badge>
-          <h3>El aire que medimos</h3>
-          <div className="dimension-value">
-            3 <span>contaminantes</span>
-          </div>
-          <p>
-            CO, NO₂ y PM10. Mediciones históricas de enero de 2026, con unidades
-            y faltantes visibles.
-          </p>
-          <div className="card-link">
-            Explorar las series <ArrowRight size={16} />
-          </div>
-        </a>
-        <a className="panel dimension-card" href="#mapa">
-          <div className="card-icon">
-            <Map size={23} />
-          </div>
-          <Badge kind="calculated">CALCULADO</Badge>
-          <h3>El territorio que observamos</h3>
-          <div className="dimension-value">
-            {data.territory.filter((t) => t.stations.length).length}
-            <span> / 15 comunas con puntos</span>
-          </div>
-          <p>
-            Presencia de estaciones del catálogo en comunas. No representa
-            cobertura ni exposición.
-          </p>
-          <div className="card-link">
-            Leer el territorio <ArrowRight size={16} />
-          </div>
-        </a>
-        <a className="panel dimension-card" href="#simulador">
-          <div className="card-icon purple-icon">
-            <FlaskConical size={23} />
-          </div>
-          <Badge kind="simulated">SIMULADO</Badge>
-          <h3>Las decisiones que exploramos</h3>
-          <div className="dimension-value">
-            3 <span>intervenciones explorables</span>
-          </div>
-          <p>
-            Tránsito, árboles y sensores. Comparaciones y costos ilustrativos
-            con supuestos a la vista.
-          </p>
-          <div className="card-link">
-            Probar un escenario <ArrowRight size={16} />
-          </div>
-        </a>
-      </div>
-      <section className="panel demo-route">
-        <div className="route-intro">
-          <Compass size={25} />
+      <section className="demo-route">
+        <div className="section-title">
           <div>
-            <div className="eyebrow">TU RECORRIDO EN 4 PASOS</div>
-            <h2>Una demo, preguntas reales.</h2>
-            <p>Explorá la propuesta en 3–4 minutos.</p>
+            <div className="eyebrow">RECORRIDO GUIADO · 3–4 MINUTOS</div>
+            <h2>De los datos al escenario</h2>
           </div>
+          <a href="#metodologia">
+            Cómo leer los resultados <ArrowUpRight size={16} />
+          </a>
         </div>
         <div className="route-steps">
           {[
             {
               id: "mapa",
-              title: "Ubicá",
-              description: "Elegí la estación Córdoba.",
+              title: "Ubicá una estación",
+              description: "Explorá CABA y seleccioná Córdoba.",
+              Icon: Map,
             },
             {
               id: "analisis",
-              title: "Observá",
-              description: "Consultá una serie real.",
+              title: "Consultá las mediciones",
+              description: "Elegí contaminante, fechas y unidades.",
+              Icon: ChartNoAxesCombined,
             },
             {
               id: "mapa",
-              title: "Proponé",
-              description: "Agregá un sensor simulado.",
+              title: "Proponé un sensor",
+              description: "Ubicá un punto simulado sin lecturas.",
+              Icon: Radio,
             },
             {
               id: "simulador",
-              title: "Compará",
-              description: "Probá reducir el tránsito 20%.",
+              title: "Compará una intervención",
+              description: "Probá una reducción del tránsito del 20%.",
+              Icon: FlaskConical,
             },
-          ].map((step, i) => (
-            <a href={`#${step.id}`} key={i}>
-              <span>{String(i + 1).padStart(2, "0")}</span>
-              <strong>{step.title}</strong>
-              <small>{step.description}</small>
+          ].map(({ id, title, description, Icon }, i) => (
+            <a href={`#${id}`} key={title}>
+              <span className="step-number">0{i + 1}</span>
+              <Icon size={23} />
+              <strong>{title}</strong>
+              <p>{description}</p>
+              <ArrowUpRight size={17} />
             </a>
           ))}
         </div>
       </section>
+      <div className="home-context">
+        <div>
+          <Info size={21} />
+          <div>
+            <h3>Medir no es extrapolar</h3>
+            <p>
+              Las estaciones aportan información localizada. No permiten inferir
+              la concentración de cada cuadra ni clasificar el riesgo sanitario
+              desde este prototipo.
+            </p>
+          </div>
+        </div>
+        <div>
+          <FlaskConical size={21} />
+          <div>
+            <h3>Simular no es predecir</h3>
+            <p>
+              Tránsito, arbolado y sensores son ejercicios con parámetros
+              editables. Los resultados no predicen concentraciones ni
+              beneficios sanitarios.
+            </p>
+          </div>
+        </div>
+      </div>
       <div className="source-line">
         <span>
-          <ShieldCheck size={16} /> Snapshot reproducible · <SourceLink /> ·
-          CC-BY-2.5-AR
+          <ShieldCheck size={17} /> Fuente: <SourceLink /> · CC-BY-2.5-AR
         </span>
-        <span>Sin datos en vivo · Sin predicción de concentraciones</span>
+        <span>Snapshot histórico · recuperado el 03/11/2026</span>
       </div>
     </>
   );
@@ -577,7 +595,7 @@ function Interventions() {
       <div className="page-heading">
         <div>
           <div className="eyebrow">CATÁLOGO DE INTERVENCIONES</div>
-          <h1>Diferentes acciones, diferentes objetivos.</h1>
+          <h1>Intervenciones ambientales</h1>
           <p>
             Reducir emisiones, reducir exposición y mejorar información son
             finalidades distintas.
@@ -622,7 +640,7 @@ function Interventions() {
       <div className="note">
         <FlaskConical size={23} />
         <div>
-          <strong>Pasá de la idea al supuesto.</strong>
+          <strong>Explorá los supuestos de cada intervención</strong>
           <p>
             El simulador permite explorar actividad vehicular, supervivencia de
             árboles y presupuestos. Validar eficacia requiere una intervención
@@ -642,7 +660,7 @@ function Methodology() {
       <div className="page-heading">
         <div>
           <div className="eyebrow">TRANSPARENCIA Y REPRODUCIBILIDAD</div>
-          <h1>Los datos tienen contexto.</h1>
+          <h1>Fuentes y metodología</h1>
           <p>
             Qué observamos, qué calculamos y qué todavía no podemos afirmar.
           </p>
@@ -652,7 +670,7 @@ function Methodology() {
       <section className="panel methodology-intro">
         <BookOpen size={30} />
         <div>
-          <h2>Una herramienta para formular mejores preguntas.</h2>
+          <h2>Alcance del prototipo</h2>
           <p>
             AirSense conecta datos oficiales históricos con un ejercicio
             territorial y escenarios ilustrativos. La línea base es enero de

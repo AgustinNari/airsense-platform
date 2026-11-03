@@ -27,3 +27,10 @@ Inicio, Mapa, Análisis, Intervenciones, Simulador y Metodología. Navegación p
 
 ## Referencias técnicas
 https://vite.dev/guide/ · https://react.dev/reference/react/useEffect · https://leafletjs.com/reference-1.9.4.html
+
+## Rediseño visual integral · noviembre 2026
+Una fase sobre la base 320b744: sustituir la barra lateral y la ilustración decorativa por una cabecera compacta integrada, navegación horizontal y un lenguaje visual editorial de producto científico. Aplicar la misma jerarquía tipográfica, espaciado, formularios y componentes en las seis secciones. Paleta mineral clara, tinta azul petróleo, acento teal y púrpura reservado a simulaciones; sin recursos remotos ni nuevas dependencias.
+
+El rediseño conserva íntegros datos, procedencia, validaciones, fórmulas, escalas/discontinuidades del gráfico, geometría, controles y estado al navegar. Solo cambia presentación, navegación visual y textos de interfaz que mantengan el significado científico. No modificar public/data, model, scripts, dependencias ni atributos Git.
+
+Aceptación visual: escritorio, tablet y móvil sin desbordamiento horizontal; tipografía legible, controles táctiles de 44 px, foco visible y movimiento reducido. Cabecera proporcionada sin sidebar permanente; mapa integrado con inspector, gráfico y tabla utilizables, formularios y comparación de escenarios coherentes, metodología legible. Validar físicamente las seis vistas en escritorio y móvil, además de los checks existentes y revisión del diff científico.

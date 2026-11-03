@@ -1,9 +1,10 @@
-# Plan de ejecución
+# Plan de ejecución · rediseño integral
 
-- [x] Verificar repositorio vacío, documento y fuentes públicas oficiales.
-- [x] Conservar originales y producir snapshot trazable de enero 2026 y presencia territorial.
-- [x] Implementar recorrido completo y estilos responsive.
-- [x] Instalar, typecheck, lint, build y check focalizado. npm audit: 0 vulnerabilidades.
-- [x] Completar verificación física de escritorio y documentar evidencia en README. Pantallas móviles excluidas de prueba por indicación del usuario.
-- [x] Revisar y documentar evidencia. Preservación binaria de los datos comprobada en índice y checkout nuevo con autocrlf=true; check científico aprobado allí.
-- [x] Commit de aplicación `32900ea` en `feat/airsense-prototype`, push normal de `main` (base inicial vacía `1492a98`) y feature; [PR #1 abierto](https://github.com/AgustinNari/airsense-platform/pull/1), sin merge.
+Base: 320b744; rama feat/airsense-visual-redesign. Una fase, conservando la funcionalidad de SPEC.md.
+
+- [x] Inspeccionar las seis vistas y fijar alcance e invariantes visuales en SPEC.
+- [x] Sustituir shell, Inicio y CSS completo; integrar las seis secciones con presentación adaptable.
+- [x] Ejecutar typecheck, lint, check científico y build; revisar que el diff excluya datos, modelo, scripts y dependencias.
+- [x] Verificar seis vistas en escritorio y cinco en viewport móvil, aplicar ajustes finales de CSS y registrar la evidencia en README.
+- [ ] Verificar Metodología en viewport móvil y revisar el CSS final cuando esté disponible el navegador local.
+- [ ] Entregar mediante PR visual separado, sin merge.

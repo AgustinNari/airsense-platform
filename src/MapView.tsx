@@ -105,7 +105,13 @@ export default function MapView({
         fillOpacity: 0.7,
       }),
       onEachFeature: (feature, layer) => {
-        layer.bindTooltip(`Comuna ${feature.properties.comuna}`, {
+        const communeLabel = document.createElement("span");
+        communeLabel.textContent = `C${feature.properties.comuna}`;
+        communeLabel.setAttribute(
+          "aria-label",
+          `Comuna ${feature.properties.comuna}`,
+        );
+        layer.bindTooltip(communeLabel, {
           permanent: true,
           direction: "center",
           className: "commune-label",
@@ -233,7 +239,7 @@ export default function MapView({
       <div className="page-heading">
         <div>
           <div className="eyebrow">DIMENSIÓN TERRITORIAL</div>
-          <h1>Una ciudad, distintas miradas.</h1>
+          <h1>Estaciones y territorio</h1>
           <p>
             Explorá dónde se encuentran los puntos del catálogo y pensá nuevas
             ubicaciones.
@@ -241,11 +247,8 @@ export default function MapView({
         </div>
         <Badge kind="calculated">CALCULADO · PRESENCIA TERRITORIAL</Badge>
       </div>
-      <div className="map-layout">
-        <section
-          className="panel map-panel"
-          aria-label="Mapa de las comunas de CABA"
-        >
+      <div className="map-layout panel">
+        <section className="map-panel" aria-label="Mapa de las comunas de CABA">
           <div className="panel-toolbar">
             <div className="toolbar-title">
               <MapPin size={18} />
@@ -268,12 +271,6 @@ export default function MapView({
             role="region"
             aria-label="Mapa interactivo. Alternativa accesible: lista de estaciones y selector de comuna."
           />
-          <div className="map-watermark">
-            CABA<span>REPÚBLICA ARGENTINA</span>
-          </div>
-          <div className="river-label" aria-hidden="true">
-            RÍO DE LA PLATA
-          </div>
           <div className="map-legend">
             <span>
               <i className="legend-dot" /> Punto del catálogo
@@ -302,7 +299,7 @@ export default function MapView({
           )}
         </section>
         <aside className="map-side">
-          <section className="panel station-card">
+          <section className="station-card">
             <div className="eyebrow">ESTACIÓN SELECCIONADA</div>
             <div className="station-symbol">
               <Radio size={26} />
@@ -347,99 +344,101 @@ export default function MapView({
               esté completa.
             </small>
           </section>
-          <section className="panel territorial-card">
-            <div className="eyebrow">LEER EL TERRITORIO</div>
-            <div className="territory-stat">
-              {territory.filter((t) => t.stations.length).length}
-              <span>/ {territory.length}</span>
-            </div>
-            <strong>comunas con puntos del catálogo</strong>
-            <div
-              className="commune-grid"
-              aria-label="Comunas con puntos: 1, 4 y 6"
-            >
-              {territory.map((t) => (
-                <span
-                  key={t.commune}
-                  className={t.stations.length ? "occupied" : ""}
-                  title={`Comuna ${t.commune}: ${t.stations.length ? "con punto" : "sin punto en este catálogo"}`}
-                >
-                  {t.commune}
-                </span>
-              ))}
-            </div>
-            <p>
-              Presencia territorial, no cobertura de calidad del aire. Las otras
-              12 comunas no tienen puntos en este catálogo seleccionado.
-            </p>
-            <MethodLink />
-          </section>
         </aside>
       </div>
-      <section className="panel sensor-controls">
-        <div>
-          <Badge kind="simulated">SIMULADO</Badge>
-          <h2>Proponé un punto de monitoreo</h2>
-          <p>
-            Un ejercicio de ubicación: sin lecturas, radios de alcance ni
-            cambios en el indicador oficial.
-          </p>
-        </div>
-        <div className="sensor-form">
-          <label>
-            Comuna para ubicar el sensor
-            <select
-              value={commune}
-              onChange={(e) => setCommune(Number(e.target.value))}
-            >
-              {territory.map((t) => (
-                <option key={t.commune} value={t.commune}>
-                  Comuna {t.commune} · {t.neighborhoods}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button className="button secondary" onClick={addAccessible}>
-            <LocateFixed size={17} /> Ubicar en esta comuna
-          </button>
-        </div>
-        <div className="status-message" role="status">
-          {message ||
-            `${sensors.length} sensores hipotéticos en el mapa. Se conservan mientras navegás.`}
-        </div>
-        {sensors.length > 0 && (
-          <div className="sensor-list">
-            {sensors.map((s, index) => (
-              <div key={s.id}>
-                <span>
-                  <i className="legend-dot purple" /> Sensor {index + 1} ·
-                  Comuna {s.commune} <small>SIMULADO · sin lecturas</small>
-                </span>
-                <button
-                  className="icon-button"
-                  aria-label={`Eliminar sensor ${index + 1}`}
-                  onClick={() =>
-                    setSensors((current) =>
-                      current.filter((item) => item.id !== s.id),
-                    )
-                  }
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+      <div className="territory-sensor-layout">
+        <section className="territorial-card">
+          <div className="eyebrow">LEER EL TERRITORIO</div>
+          <div className="territory-stat">
+            {territory.filter((t) => t.stations.length).length}
+            <span>/ {territory.length}</span>
+          </div>
+          <strong>comunas con puntos del catálogo</strong>
+          <div
+            className="commune-grid"
+            aria-label="Comunas con puntos: 1, 4 y 6"
+          >
+            {territory.map((t) => (
+              <span
+                key={t.commune}
+                className={t.stations.length ? "occupied" : ""}
+                title={`Comuna ${t.commune}: ${t.stations.length ? "con punto" : "sin punto en este catálogo"}`}
+              >
+                {t.commune}
+              </span>
             ))}
-            <button
-              className="text-button"
-              onClick={() => {
-                setSensors([]);
-                setMessage("Se quitaron todos los sensores hipotéticos.");
-              }}
-            >
-              Quitar todos
+          </div>
+          <p>
+            Presencia territorial, no cobertura de calidad del aire. Las otras
+            12 comunas no tienen puntos en este catálogo seleccionado.
+          </p>
+          <MethodLink />
+        </section>
+        <section className="panel sensor-controls">
+          <div>
+            <Badge kind="simulated">SIMULADO</Badge>
+            <h2>Proponé un punto de monitoreo</h2>
+            <p>
+              Un ejercicio de ubicación: sin lecturas, radios de alcance ni
+              cambios en el indicador oficial.
+            </p>
+          </div>
+          <div className="sensor-form">
+            <label>
+              Comuna para ubicar el sensor
+              <select
+                value={commune}
+                onChange={(e) => setCommune(Number(e.target.value))}
+              >
+                {territory.map((t) => (
+                  <option key={t.commune} value={t.commune}>
+                    Comuna {t.commune} · {t.neighborhoods}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="button secondary" onClick={addAccessible}>
+              <LocateFixed size={17} /> Ubicar en esta comuna
             </button>
           </div>
-        )}
-      </section>
+          <div className="status-message" role="status">
+            {message ||
+              `${sensors.length} sensores hipotéticos en el mapa. Se conservan mientras navegás.`}
+          </div>
+          {sensors.length > 0 && (
+            <div className="sensor-list">
+              {sensors.map((s, index) => (
+                <div key={s.id}>
+                  <span>
+                    <i className="legend-dot purple" /> Sensor {index + 1} ·
+                    Comuna {s.commune} <small>SIMULADO · sin lecturas</small>
+                  </span>
+                  <button
+                    className="icon-button"
+                    aria-label={`Eliminar sensor ${index + 1}`}
+                    onClick={() =>
+                      setSensors((current) =>
+                        current.filter((item) => item.id !== s.id),
+                      )
+                    }
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
+              <button
+                className="text-button"
+                onClick={() => {
+                  setSensors([]);
+                  setMessage("Se quitaron todos los sensores hipotéticos.");
+                }}
+              >
+                Quitar todos
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
       <div className="note">
         <strong>Una brecha de información no demuestra contaminación.</strong>{" "}
         Estos puntos no permiten inferir la calidad del aire de cada barrio ni

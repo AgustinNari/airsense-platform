@@ -128,7 +128,7 @@ export default function Simulator({
       <div className="page-heading">
         <div>
           <div className="eyebrow">LABORATORIO DE ESCENARIOS</div>
-          <h1>¿Y si cambiamos las variables?</h1>
+          <h1>Simulador de intervenciones</h1>
           <p>
             Compará supuestos transparentes. Explorá posibilidades sin inventar
             calidad del aire.
@@ -260,7 +260,7 @@ export default function Simulator({
               <div className="result-icon">
                 <CarFront size={26} />
               </div>
-              <h2>La actividad vehicular cambia.</h2>
+              <h2>Actividad vehicular resultante</h2>
               <p>La concentración del aire requiere medición propia.</p>
               <div className="big-result">
                 {number(traffic)}
@@ -314,7 +314,7 @@ export default function Simulator({
               <div className="result-icon">
                 <Radio size={26} />
               </div>
-              <h2>Planificar dónde medir.</h2>
+              <h2>Sensores adicionales</h2>
               <p>Los puntos hipotéticos no reemplazan estaciones oficiales.</p>
               <div className="big-result">
                 {money(sensorTotal)}
@@ -347,7 +347,7 @@ export default function Simulator({
       <section className="panel budget-summary">
         <div>
           <div className="eyebrow">DIMENSIÓN ECONÓMICA · ESCENARIO ACTUAL</div>
-          <h2>El costo de los supuestos.</h2>
+          <h2>Presupuesto del escenario</h2>
           <p>
             Solo plantación y dispositivos. No incluye programa de tránsito,
             mantenimiento, instalación de sensores ni operación.

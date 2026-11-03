@@ -53,6 +53,16 @@ Los resultados distinguen OBSERVADO, CALCULADO, SUPUESTO y SIMULADO. Tránsito m
 
 ## Validación
 
+El rediseño se verificó en navegador de escritorio (1440 × 1000) en las seis vistas. Desde Inicio, el enlace de La Boca abrió el mapa con esa estación seleccionada. La serie de Córdoba mostró 744/744 registros disponibles.
+
+En el viewport móvil emulado (390 × 845) se verificaron Inicio, Mapa, Análisis, Intervenciones y Simulador. Escape cerró el menú y devolvió el foco al botón. Se agregó un sensor hipotético. Parque Centenario PM10 mostró 9/24 valores el 01/01 y la tabla indicó «Sin dato» en los faltantes. El período del 20/01 al 01/01 activó el error de fechas. Cuatro sensores a ARS 300.000 por unidad dieron un subtotal de ARS 6.200.000 con la plantación por defecto.
+
+La configuración de Work deshabilitó el navegador local durante la revisión. Quedaron pendientes la vista de Metodología en móvil y la comprobación visual de los últimos ajustes de CSS. La emulación no cubre un teléfono físico ni una matriz de navegadores.
+
+`typecheck`, `lint`, `check` y `build` pasaron tras el rediseño. El diff contra `320b744` confirma la conservación de datos, modelo, scripts, dependencias y atributos Git.
+
+### Validación del prototipo original
+
 Ejecutados satisfactoriamente: instalación con scripts bloqueados, `typecheck`, `lint`, `check`, `build` y `npm audit` (**0 vulnerabilidades**). El check focalizado protege 744 claves fecha/hora únicas, faltantes, cuatro hashes originales, presencia 3/15, fórmulas y cortes del gráfico. Revisión independiente comparó las 6.696 celdas del extracto con el CSV original sin diferencias.
 
 Reproducibilidad Git: los ocho blobs de datos preparados en el índice coinciden byte a byte con los archivos locales. Se exportó un checkout nuevo desde ese índice con `core.autocrlf=true`: los ocho archivos conservaron sus bytes, los cuatro hashes y tamaños originales coincidieron con el manifiesto y `npm run check` pasó desde ese checkout.
