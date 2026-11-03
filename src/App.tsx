@@ -453,8 +453,8 @@ function Home({
             ))}
           </div>
           <p className="overview-footnote">
-            {/* Presencia de puntos, no cobertura de calidad del aire ni exposición
-            de la población. */}
+            Presencia de puntos, no cobertura de calidad del aire ni exposición
+            de la población.
           </p>
           <a className="method-link" href="#mapa">
             Explorar el territorio <ArrowRight size={16} />
@@ -476,7 +476,7 @@ function Home({
             {
               id: "mapa",
               title: "Ubicá una estación",
-              description: "Explorá CABA y seleccioná alguna ciudad (por ejemplo Córdoba).",
+              description: "Explorá CABA y seleccioná una estación, por ejemplo Córdoba.",
               Icon: Map,
             },
             {

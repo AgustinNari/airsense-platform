@@ -77,6 +77,7 @@ export default function MapView({
   setSensors,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
+  const viewport = useRef<{ center: L.LatLng; zoom: number } | null>(null);
   const [osm, setOsm] = useState(false),
     [adding, setAdding] = useState(false),
     [commune, setCommune] = useState(2),
@@ -118,7 +119,9 @@ export default function MapView({
         });
       },
     }).addTo(map);
-    map.fitBounds(polygons.getBounds(), { padding: [28, 28] });
+    if (viewport.current)
+      map.setView(viewport.current.center, viewport.current.zoom, { animate: false });
+    else map.fitBounds(polygons.getBounds(), { padding: [28, 28] });
     if (osm) {
       const tiles = L.tileLayer(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -202,6 +205,7 @@ export default function MapView({
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(container.current);
     return () => {
+      viewport.current = { center: map.getCenter(), zoom: map.getZoom() };
       observer.disconnect();
       map.remove();
     };
@@ -221,6 +225,7 @@ export default function MapView({
       (f) => Number(f.properties.comuna) === commune,
     )!;
     const point = interiorPoint(feature);
+    setAdding(false);
     setSensors((current) => [
       ...current,
       {

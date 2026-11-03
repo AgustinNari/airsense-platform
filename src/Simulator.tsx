@@ -62,6 +62,7 @@ export default function Simulator({
   const [scenario, setScenario] = useState<Scenario>(defaults),
     [tab, setTab] = useState("traffic");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [drafts, setDrafts] = useState<Partial<Record<keyof Scenario, string>>>({});
   const traffic = finalTraffic(scenario.vehicles, scenario.reduction),
     survivors = survivingTrees(
       scenario.trees,
@@ -91,10 +92,11 @@ export default function Simulator({
             min={min}
             max={max}
             step="1"
-            value={scenario[key]}
+            value={drafts[key] ?? scenario[key]}
             aria-invalid={!!errors[key]}
             aria-describedby={errors[key] ? `${key}-error` : undefined}
             onChange={(e) => {
+              setDrafts((current) => ({ ...current, [key]: e.target.value }));
               const value = Number(e.target.value);
               if (
                 e.target.value === "" ||
@@ -110,6 +112,10 @@ export default function Simulator({
                 return;
               }
               setScenario((current) => ({ ...current, [key]: value }));
+              setErrors((current) => ({ ...current, [key]: "" }));
+            }}
+            onBlur={() => {
+              setDrafts((current) => ({ ...current, [key]: undefined }));
               setErrors((current) => ({ ...current, [key]: "" }));
             }}
           />
@@ -138,6 +144,7 @@ export default function Simulator({
           onClick={() => {
             setScenario(defaults);
             setErrors({});
+            setDrafts({});
           }}
         >
           <RotateCcw size={16} /> Restablecer escenario
@@ -150,7 +157,8 @@ export default function Simulator({
         <div>
           <strong>MODELO ILUSTRATIVO</strong>
           <p>
-            Los controles son no preditivos. Costos expresados en ARS.
+            Los resultados son ilustrativos y no predicen concentraciones.
+            Costos expresados en ARS.
           </p>
         </div>
         <Badge kind="simulated">SIMULADO</Badge>
