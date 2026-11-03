@@ -401,7 +401,7 @@ function Home({
             <h2>Series de enero 2026</h2>
           </div>
           <p className="overview-lead">
-            Tres contaminantes, unidades originales.
+            Tres contaminantes.
           </p>
           <div className="pollutant-list">
             <div>
@@ -453,8 +453,8 @@ function Home({
             ))}
           </div>
           <p className="overview-footnote">
-            Presencia de puntos, no cobertura de calidad del aire ni exposición
-            de la población.
+            {/* Presencia de puntos, no cobertura de calidad del aire ni exposición
+            de la población. */}
           </p>
           <a className="method-link" href="#mapa">
             Explorar el territorio <ArrowRight size={16} />
@@ -464,7 +464,7 @@ function Home({
       <section className="demo-route">
         <div className="section-title">
           <div>
-            <div className="eyebrow">RECORRIDO GUIADO · 3–4 MINUTOS</div>
+            <div className="eyebrow">RECORRIDO GUIADO</div>
             <h2>De los datos al escenario</h2>
           </div>
           <a href="#metodologia">
@@ -476,7 +476,7 @@ function Home({
             {
               id: "mapa",
               title: "Ubicá una estación",
-              description: "Explorá CABA y seleccioná Córdoba.",
+              description: "Explorá CABA y seleccioná alguna ciudad (por ejemplo Córdoba).",
               Icon: Map,
             },
             {

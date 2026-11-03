@@ -379,8 +379,7 @@ export default function MapView({
             <Badge kind="simulated">SIMULADO</Badge>
             <h2>Proponé un punto de monitoreo</h2>
             <p>
-              Un ejercicio de ubicación: sin lecturas, radios de alcance ni
-              cambios en el indicador oficial.
+              IMPORTANTE: estos puntos son para una visualización visual y estratégica. No generan mediciones.
             </p>
           </div>
           <div className="sensor-form">

@@ -274,7 +274,7 @@ export default function Analysis({
             <div className="chart-footer">
               <span>
                 <Info size={15} /> {number(expected - available.length)}{" "}
-                faltantes · se muestran como interrupciones, nunca como cero.
+                faltantes
               </span>
               <MethodLink />
             </div>
@@ -323,10 +323,9 @@ export default function Analysis({
       <div className="note">
         <Info size={20} />
         <div>
-          <strong>Una lectura requiere contexto.</strong>
+          <strong>No utilizar esta información sin entender el contexto.</strong>
           <p>
-            Los promedios móviles se superponen. No son valores instantáneos ni
-            promedios diarios independientes. Este prototipo no clasifica riesgo
+            Los promedios móviles se superponen. Este prototipo no clasifica riesgo
             sanitario ni cumplimiento normativo.
           </p>
         </div>

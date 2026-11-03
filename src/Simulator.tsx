@@ -130,8 +130,7 @@ export default function Simulator({
           <div className="eyebrow">LABORATORIO DE ESCENARIOS</div>
           <h1>Simulador de intervenciones</h1>
           <p>
-            Compará supuestos transparentes. Explorá posibilidades sin inventar
-            calidad del aire.
+            Compará supuestos transparentes. 
           </p>
         </div>
         <button
@@ -149,10 +148,9 @@ export default function Simulator({
           <Info size={22} />
         </span>
         <div>
-          <strong>Un modelo ilustrativo, con límites claros.</strong>
+          <strong>MODELO ILUSTRATIVO</strong>
           <p>
-            Los controles no predicen concentraciones ni beneficios sanitarios.
-            Costos expresados en ARS, sin cotización comercial.
+            Los controles son no preditivos. Costos expresados en ARS.
           </p>
         </div>
         <Badge kind="simulated">SIMULADO</Badge>
