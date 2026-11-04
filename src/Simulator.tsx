@@ -10,6 +10,12 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { finalTraffic, money, number, survivingTrees } from "./model";
 import { Badge, MethodLink } from "./ui";
+import ExtensionBoundary from "./ExtensionBoundary";
+import HepaPanel from "./HepaPanel";
+import { ScenarioComparison, TreeEvolution } from "./SimulationExtras";
+import type { Saved } from "./SimulationExtras";
+import { hepaDefaults } from "./extensions";
+import FutureProjection from "./FutureProjection";
 const defaults = {
   vehicles: 10000,
   reduction: 20,
@@ -56,12 +62,18 @@ function CompareBars({
 }
 export default function Simulator({
   mappedSensors,
+  active,
 }: {
   mappedSensors: number;
+  active: boolean;
 }) {
   const [scenario, setScenario] = useState<Scenario>(defaults),
     [tab, setTab] = useState("traffic");
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [drafts, setDrafts] = useState<Partial<Record<keyof Scenario, string>>>({});
+  const [saved, setSaved] = useState<Saved[]>([]);
+  const [hepa, setHepa] = useState(hepaDefaults);
+  const [section, setSection] = useState("basic");
   const traffic = finalTraffic(scenario.vehicles, scenario.reduction),
     survivors = survivingTrees(
       scenario.trees,
@@ -81,6 +93,7 @@ export default function Simulator({
     max: number,
     unit: string,
     min = 0,
+    prefix = "basic",
   ) {
     return (
       <label className="number-field">
@@ -91,10 +104,11 @@ export default function Simulator({
             min={min}
             max={max}
             step="1"
-            value={scenario[key]}
+            value={drafts[key] ?? scenario[key]}
             aria-invalid={!!errors[key]}
-            aria-describedby={errors[key] ? `${key}-error` : undefined}
+            aria-describedby={errors[key] ? `${prefix}-${key}-error` : undefined}
             onChange={(e) => {
+              setDrafts((current) => ({ ...current, [key]: e.target.value }));
               const value = Number(e.target.value);
               if (
                 e.target.value === "" ||
@@ -112,11 +126,15 @@ export default function Simulator({
               setScenario((current) => ({ ...current, [key]: value }));
               setErrors((current) => ({ ...current, [key]: "" }));
             }}
+            onBlur={() => {
+              setDrafts((current) => ({ ...current, [key]: undefined }));
+              setErrors((current) => ({ ...current, [key]: "" }));
+            }}
           />
           <span>{unit}</span>
         </div>
         {errors[key] && (
-          <small id={`${key}-error`} className="field-error" role="alert">
+          <small id={`${prefix}-${key}-error`} className="field-error" role="alert">
             {errors[key]}
           </small>
         )}
@@ -128,35 +146,41 @@ export default function Simulator({
       <div className="page-heading">
         <div>
           <div className="eyebrow">LABORATORIO DE ESCENARIOS</div>
-          <h1>¿Y si cambiamos las variables?</h1>
+          <h1>Simulador de intervenciones</h1>
           <p>
-            Compará supuestos transparentes. Explorá posibilidades sin inventar
-            calidad del aire.
+            Compará supuestos transparentes. 
           </p>
         </div>
         <button
           className="button secondary"
+          hidden={section !== "basic"}
           onClick={() => {
             setScenario(defaults);
             setErrors({});
+            setDrafts({});
           }}
         >
           <RotateCcw size={16} /> Restablecer escenario
         </button>
+      </div>
+      <div className="simulation-tabs simulator-sections" role="group" aria-label="Secciones del simulador">
+        {[["basic", "Simulación básica"], ["projection", "Proyección interactiva"], ["hepa", "Filtración HEPA"]].map(([id,label]) =>
+          <button key={id} aria-pressed={section === id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}</button>)}
       </div>
       <div className="simulation-banner">
         <span className="simulation-icon">
           <Info size={22} />
         </span>
         <div>
-          <strong>Un modelo ilustrativo, con límites claros.</strong>
+          <strong>MODELO ILUSTRATIVO</strong>
           <p>
-            Los controles no predicen concentraciones ni beneficios sanitarios.
-            Costos expresados en ARS, sin cotización comercial.
+            Los resultados son ilustrativos y no predicen concentraciones.
+            Costos expresados en ARS.
           </p>
         </div>
         <Badge kind="simulated">SIMULADO</Badge>
       </div>
+      <div hidden={section !== "basic"}>
       <div
         className="simulation-tabs"
         role="group"
@@ -260,8 +284,8 @@ export default function Simulator({
               <div className="result-icon">
                 <CarFront size={26} />
               </div>
-              <h2>La actividad vehicular cambia.</h2>
-              <p>La concentración del aire requiere medición propia.</p>
+              <h2>Actividad vehicular resultante</h2>
+              <p>La concentración de contaminantes requiere mediciones propias.</p>
               <div className="big-result">
                 {number(traffic)}
                 <span>vehículos/día en el escenario alternativo</span>
@@ -314,7 +338,7 @@ export default function Simulator({
               <div className="result-icon">
                 <Radio size={26} />
               </div>
-              <h2>Planificar dónde medir.</h2>
+              <h2>Sensores adicionales</h2>
               <p>Los puntos hipotéticos no reemplazan estaciones oficiales.</p>
               <div className="big-result">
                 {money(sensorTotal)}
@@ -347,7 +371,7 @@ export default function Simulator({
       <section className="panel budget-summary">
         <div>
           <div className="eyebrow">DIMENSIÓN ECONÓMICA · ESCENARIO ACTUAL</div>
-          <h2>El costo de los supuestos.</h2>
+          <h2>Presupuesto del escenario</h2>
           <p>
             Solo plantación y dispositivos. No incluye programa de tránsito,
             mantenimiento, instalación de sensores ni operación.
@@ -370,6 +394,28 @@ export default function Simulator({
           </div>
         </div>
       </section>
+      {tab === "trees" && <ExtensionBoundary>
+        <TreeEvolution planted={scenario.trees} survival={scenario.survival} years={scenario.years} />
+      </ExtensionBoundary>}
+      </div>
+      <div hidden={section !== "projection"}>
+        <ExtensionBoundary>
+          <FutureProjection scenario={scenario} saved={saved} hepa={hepa} mappedSensors={mappedSensors}
+            active={active && section === "projection"}
+            onHorizonChange={years => setScenario(current => ({ ...current, years }))}
+            renderField={(key, label, max, unit, min = 0) => field(key, label, max, unit, min, "projection")}
+            onExample={() => { setScenario(defaults); setErrors({}); setDrafts({}); }}
+            onOpenHepa={() => setSection("hepa")} />
+        </ExtensionBoundary>
+      </div>
+      <div hidden={section === "hepa"}>
+      <ExtensionBoundary>
+        <ScenarioComparison scenario={scenario} tab={section === "projection" ? "traffic" : tab} invalid={Object.values(errors).some(Boolean)} saved={saved} setSaved={setSaved} />
+      </ExtensionBoundary>
+      </div>
+      <div hidden={section !== "hepa"}>
+      <ExtensionBoundary><HepaPanel inputs={hepa} setInputs={setHepa} /></ExtensionBoundary>
+      </div>
     </>
   );
 }

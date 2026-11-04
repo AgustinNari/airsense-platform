@@ -1,7 +1,11 @@
 # Estado
 
-Implementación completa conforme a [SPEC.md](SPEC.md); [PLAN.md](PLAN.md) completado. Rama `feat/airsense-prototype`, commit de aplicación `32900ea`, publicada mediante push normal. `main` conserva la base inicial vacía `1492a98`. [PR #1 abierto](https://github.com/AgustinNari/airsense-platform/pull/1), sin merge.
+Proyección temporal interactiva implementada en `feat/airsense-visual-redesign`, conservando el rediseño, las ampliaciones y el recorrido anterior. [SPEC.md](SPEC.md) fija alcance e invariantes y [README.md](README.md) documenta métodos, recorrido y validaciones.
 
-Desde la raíz del repositorio: `npm ci` y `npm run dev`. URL de desarrollo: http://127.0.0.1:5173, respuesta HTTP 200 verificada al cierre.
+Nuevos paneles: contexto territorial y recomendaciones limitadas a información disponible/supuestos; evolución anual; hasta tres escenarios en memoria; HEPA interior independiente; fichas de sensores con muestras sintéticas. Ninguno modifica las concentraciones oficiales. Los errores de renderizado de paneles complementarios se aíslan del recorrido principal.
 
-`typecheck`, `lint`, check científico y build aprobados; auditoría sin vulnerabilidades. `.gitattributes` preserva los bytes de `public/data/**`; índice y checkout nuevo con `core.autocrlf=true` verificados, incluido el check científico. [README.md](README.md) conserva fuentes, límites, evidencia física de escritorio y pruebas pendientes; pantallas móviles excluidas por indicación del usuario. No quedan tareas de implementación ni bloqueos.
+`FutureProjection` evoluciona el módulo existente, con situación inicial, intervenciones, ejecución y resultados. El Simulador separa básica/proyección/HEPA. `projection.ts` calcula niveles relativos hipotéticos de NO₂ y PM10 con coeficientes distintos y arbitrarios; retira el índice genérico de la vista. Año 0 previo a medidas; aplicación común en año elegido, supervivencia y costos desde instalación. HEPA y sensores no afectan el aire exterior.
+
+`useProjectionPlayback` administra un intervalo con limpieza, pausa/reanudación, velocidad, reinicio, pasos y resultado final. Cambios de configuración invalidan la ejecución; salir de vista o ruta pausa. Movimiento reducido conserva inspección manual. Se reutilizan parámetros y copias básicas; las condiciones ambientales, calendario y HEPA son comunes y no se guardan en esas copias.
+
+Typecheck, lint, check de integridad y cálculos (incluidos calendario y niveles NO₂/PM10), y build aprobados. Se comprobaron funciones nuevas y recorrido principal en navegador, con revisión móvil emulada. Pendientes: teléfono físico, proyector, lector de pantalla y fallos inducidos de los límites de error y emulación activa de movimiento reducido (lógica revisada en código). No se realizaron commits ni push en esta iteración. No se requieren servicios ni paquetes adicionales.

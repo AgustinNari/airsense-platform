@@ -31,6 +31,35 @@ Inicio → Mapa territorial → Córdoba → Consultar mediciones → agregar un
 - Simulador de base/alternativa para actividad vehicular, supervivencia de árboles y dispositivos adicionales. Supuestos y costos editables; barras de la misma unidad, restablecimiento y subtotal ilustrativo.
 - Metodología accesible desde resultados. Estación, filtros, escenario y sensores persisten al navegar; recargar reinicia el estado. Controles nativos, navegación por teclado, foco visible y estilos adaptables.
 
+### Herramientas complementarias
+
+Los paneles nuevos se abren a pedido y no cambian el recorrido principal ni los valores predeterminados.
+
+- **Mapa → Contexto territorial:** selector de comuna y selección por clic en polígonos fuera del modo de colocación; barrios, puntos del catálogo y disponibilidad por contaminante. Las comunas sin puntos se agrupan como oportunidades de estudio, sin ranking de contaminación. No se agregaron capas externas ni ubicaciones de escuelas, hospitales o conteos de tránsito.
+- **Recomendaciones:** presencia de puntos como criterio de información; movilidad, interiores y arbolado como contextos explícitamente hipotéticos. Se explica el motivo, lo que falta y los límites, con acceso al catálogo existente.
+- **Ficha de sensor:** muestra determinista opcional de PM10, temperatura y humedad. Se calcula desde el ID, sin fecha ni ventana de medición real, sin relación con el sitio y sin mezclarse con series oficiales. No hay dispositivo ni transmisión IoT.
+- **Arbolado → Evolución:** gráfico SVG y tabla anual desde año 0 hasta el horizonte existente, evaluando la misma supervivencia. No se proyectan crecimiento, captura de partículas ni mantenimiento.
+- **Comparar alternativas:** hasta tres copias completas de los parámetros actuales en memoria. En básica, la tabla sigue la pestaña activa (tránsito, arbolado o sensores); en proyección resume actividad vehicular. Conserva bases, horizontes y unidades explícitos. Se pueden nombrar, eliminar y vaciar. Restablecer el escenario actual conserva las copias; recargar las elimina. HEPA tiene parámetros y presupuesto independientes y no integra esta tabla.
+- **HEPA interior:** volumen = superficie × altura; CADR total = cantidad × CADR por equipo; eACH = CADR total / volumen. Energía diaria = cantidad × W / 1.000 × horas; electricidad diaria = kWh × tarifa; compra = cantidad × costo unitario. CADR en m³/h y volumen en m³. Con 0 horas, energía y electricidad son cero; CADR/eACH siguen indicando capacidad al encenderlos. No se predice un porcentaje de reducción de PM2.5 ni se trata aire exterior. Equipos, costos y tarifa son supuestos editables, sin filtros de repuesto ni mantenimiento.
+
+Implementación: `extensions.ts` contiene cálculos y reglas; `SimulationExtras`, `HepaPanel`, `TerritoryPanel`, `SensorReadings` y `ExtensionMethodology` contienen paneles. `projection.ts` y `FutureProjection` implementan la proyección futura. `extensions.css` conserva la paleta y los estilos existentes. Cada herramienta complementaria se envuelve en `ExtensionBoundary` para aislar errores de renderizado. No hay dependencias nuevas.
+
+### Proyección interactiva de evolución ambiental
+
+El Simulador tiene tres secciones sin rutas nuevas: **Simulación básica**, **Proyección interactiva** y **Filtración HEPA**. La básica conserva controles, barras, supervivencia y comparación originales. HEPA conserva sus fórmulas y parámetros compartidos. El comparador de tres copias es el mismo en básica y proyección; no se duplican sus configuraciones.
+
+`FutureProjection` evoluciona el módulo anterior con cuatro etapas: A situación inicial común (zona hipotética, vehículos, árboles iniciales y niveles relativos editables); B intervenciones; C horizonte/ejecución y dos alternativas; D resultados. Cargar ejemplo recupera 10.000 vehículos/día, 50 árboles iniciales, 100 nuevos, supervivencia 90%, reducción 20%, niveles NO₂/PM10 de 100 y aplicación en año 1. Las copias guardadas permanecen intactas. El comparador guarda parámetros básicos; niveles iniciales, árboles iniciales, calendario y HEPA opcional son condiciones comunes de esta proyección, no parte de esas copias.
+
+**Año 0 = situación inicial anterior a las nuevas medidas.** Las medidas se aplican al llegar al año s (1–30). Edad a = t − s. Antes de s se conservan vehículos, árboles iniciales y niveles relativos, sin nuevas compras. Desde s: vehículos = iniciales × (1 − r/100); nuevos supervivientes N(a) = plantados × (supervivencia/100)^a. Los árboles iniciales se mantienen constantes; no se modela su mortalidad. La curva básica de arbolado conserva su año 0 de plantación: son referencias temporales distintas y explícitas.
+
+**NO₂ y PM10 hipotéticos:** nivel = B × max(0, 1 − α × r/100 − β × G), con G = min(N(a)/100,1) × min(a/10,1). NO₂: α=0,30 y β=0,05; PM10: α=0,15 y β=0,10. Antes de s ambos ajustes son cero. Sin vehículos iniciales el término de tránsito es cero. B es el nivel inicial editable (0–300 puntos); 100 es la referencia sintética del ejemplo. No se usan unidades físicas ni mediciones oficiales. Los coeficientes son arbitrarios, no evidencia de eficacia en Buenos Aires ni una conversión entre emisiones y concentración. No hay ICA/AQI, riesgo sanitario ni cumplimiento legal. El índice genérico anterior se sustituye por estas curvas independientes.
+
+Inicio comienza en año 0. Pausa y reanudación conservan el año; reiniciar vuelve a 0 sin alterar parámetros; resultado final evita la espera. Velocidades 400/600/800/1.500 ms por año. Gráfico, tarjetas, tabla y SVG conceptual usan el mismo año. El gráfico revela progresivamente dos curvas por alternativa (continua/discontinua). Se puede avanzar/retroceder o usar el selector. Cambiar parámetros cancela la ejecución y exige iniciarla otra vez. Salir del apartado o de la proyección pausa la reproducción. Un único intervalo se limpia al pausar, cambiar configuración, terminar o desmontar. Movimiento reducido deshabilita reproducción automática y conserva avance manual y resultado final.
+
+HEPA opcional usa la configuración actual compartida; nunca modifica NO₂/PM10 exteriores. Se muestran CADR, eACH, energía y costos por separado. Sensores solo cuentan dispositivos propuestos; no mejoran automáticamente cobertura ni validan el modelo. La vista conceptual no tiene geografía real ni colorea contaminación espacial.
+
+Costos = plantación y compras al llegar a s + electricidad diaria HEPA × 365 × a. En s hay cero días de electricidad acumulados; no se inventan mantenimiento, reposición ni inflación. El ejemplo al año 5 (aplicación en 1) da 65,61 árboles nuevos esperados, NO₂ 92,6878 y PM10 94,3756 puntos relativos. Con HEPA incluido: compras/plantación ARS 6.150.000, electricidad ARS 175.200 y total ARS 6.325.200. Sin HEPA, total ARS 5.750.000 y los mismos niveles exteriores.
+
 El recorrido carga archivos locales; no requiere una API en vivo ni internet tras instalar y arrancar el servidor. **No es una PWA ni garantiza uso sin un servidor local.** El fondo opcional OpenStreetMap requiere internet y solicita teselas a ese proveedor, con atribución visible. La geometría local sigue disponible si falla el fondo.
 
 ## Datos y límites científicos
@@ -49,9 +78,49 @@ No hay PM2.5. Se conserva HORA 1–24 y la fecha de la fuente: la hora 24 no se 
 
 Las **3/15 comunas con puntos** miden presencia territorial en este catálogo, no cobertura de calidad del aire, exposición o población beneficiada. La asignación depende de la precisión de coordenadas y límites; los puntos limítrofes pueden cambiar de comuna. No se extrapola concentración por cuadra ni se usan radios de alcance.
 
-Los resultados distinguen OBSERVADO, CALCULADO, SUPUESTO y SIMULADO. Tránsito modela actividad, no concentración. La supervivencia supone tasa constante y ausencia de reposición. Los costos en ARS son ilustrativos: solo plantación y dispositivos; excluyen programa de tránsito, mantenimiento, instalación de sensores y operación. Los sensores hipotéticos no generan lecturas y el presupuesto de dispositivos es independiente del mapa. Validar eficacia requiere intervención física y medición posterior.
+Los resultados distinguen OBSERVADO, CALCULADO, SUPUESTO y SIMULADO. Tránsito modela actividad, no concentración. La supervivencia supone tasa constante y ausencia de reposición. El subtotal principal en ARS es ilustrativo: solo plantación y sensores; excluye programa de tránsito, mantenimiento, instalación de sensores y operación. HEPA calcula compra y electricidad por separado. Los sensores hipotéticos no generan mediciones reales: su ficha contiene solo ejemplos sintéticos, independientes de los datos oficiales. El presupuesto de dispositivos es independiente del mapa. Validar eficacia requiere intervención física y medición posterior.
 
 ## Validación
+
+El chequeo existente incluye pruebas de evolución anual (año 0, tasas 0/100%, horizonte máximo), resultados de escenarios, HEPA (unidades, equipo/capacidad/horas/tarifa cero, límites y divisiones inválidas), muestras sintéticas y reglas de monitoreo. Se preservan los chequeos de datos oficiales, fórmulas originales y discontinuidades.
+
+### Validación de la simulación interactiva
+
+Typecheck, lint, check y build ejecutados. Pruebas de cálculo: año 0 sin nuevas medidas, aplicación diferida o fuera del horizonte, supervivencia desde instalación, costos y electricidad, cero niveles/vehículos/equipos/horas, independencia respecto de sensores/HEPA, entradas inválidas, copias sin mutación y extremos de 30 años. Se conservan hashes, faltantes y fórmulas originales.
+
+Navegador desktop: inicio y botón protegido frente a duplicación, avance automático, pausa estable (año sin cambios tras esperar), reanudación, velocidad, reinicio y pasos manuales. Editar NO₂ inicial durante reproducción detuvo y volvió a 0; salir a HEPA o Mapa dejó la ejecución pausada. Resultado final y finalización natural en año 5 comprobados. Alternativas 20/30% mostraron simultáneamente NO₂ 92,69/89,69 y PM10 94,38/92,88 al año 5; editar el actual a 40% no cambió sus copias. HEPA mantuvo sus resultados y no modificó las curvas exteriores.
+
+En móvil emulado 390×845 se revisaron configuración, reproducción, gráfico, tarjetas, tabla con desplazamiento propio, aplicación diferida y HEPA. Nivel inicial −1 rechazado; edición a 150 válida; ejemplo restaurado. Sin desbordamiento de página ni errores/advertencias de consola durante los recorridos. El recorrido académico desde sesión limpia conservó NO₂ oficial Córdoba 744/744, sensor hipotético, catálogo, 10.000→8.000 vehículos/día, arbolado básico y metodología.
+
+No se probaron teléfono físico, lector de pantalla ni proyector. El navegador tenía movimiento reducido desactivado: el comportamiento para esa preferencia se revisó en código, sin cambiar la preferencia del sistema. No se indujeron errores del límite de renderizado. Las validaciones siguientes corresponden a iteraciones anteriores.
+
+### Validación histórica de la proyección conceptual anterior
+
+Se ejecutaron typecheck, lint, check y build. Las pruebas de cálculo verifican base sin intervenciones, año 0, supervivencia, costos iniciales y electricidad acumulada, cero vehículos/equipos/horas, independencia del índice respecto de HEPA y sensores, ausencia de mutación del escenario, horizontes inválidos y resultados finitos en extremos de 30 años.
+
+En navegador de escritorio se comprobaron configuración actual, base, alternativas guardadas, años 0/5/10, horizonte común sin cambiar copias originales, eliminación de la copia seleccionada y restablecimiento de vista. HEPA compartido actualizó costos; 0 horas dejó energía y electricidad en cero sin cambiar el índice. El recorrido Inicio → Mapa → Córdoba → NO₂ (744/744) → sensor → Intervenciones → Simulador (10.000/8.000) → Metodología siguió operativo.
+
+En móvil emulado 390 × 845 se revisaron controles, representación conceptual, gráfico y tabla; el horizonte mínimo ajustó el año, el límite de tres alternativas siguió activo y vaciar volvió a configuración actual. Sin desbordamiento de página ni errores/advertencias de consola en el recorrido. No se probaron teléfono físico, proyector, lector de pantalla ni fallos inducidos del límite de error. Datos oficiales, modelo original y dependencias sin cambios.
+
+### Validación de la ampliación modular anterior
+
+En esta ampliación se ejecutaron `typecheck`, `lint`, `check` y `build` satisfactoriamente. En navegador de escritorio se comprobaron el recorrido existente, NO₂ de Córdoba (744/744), selección de comuna por polígono y selector, contexto con/sin puntos, recomendación hipotética de interior y ficha sintética del sensor. Se guardaron alternativas de tránsito 10/20/30% (9.000/8.000/7.000 vehículos/día), se verificó que las copias no cambian al editar, el límite de tres y la eliminación. La tabla anual mostró 100, 90, 81, 72,9, 65,61 y 59,05 árboles en años 0–5.
+
+HEPA mostró 180 m³, 600 m³/h, 3,33 h⁻¹, 0,8 kWh/día y ARS 120/día con sus supuestos iniciales. Se comprobaron volumen cero inválido, vaciado y reemplazo del campo, actualización a 80 m² y operación de 0 horas. En viewport móvil emulado (390 × 845) se inspeccionaron contexto territorial, ficha sintética, HEPA y metodología ampliada; se verificaron alta por comuna con cancelación de colocación, cero equipos, persistencia de comparación al navegar, vaciado y recuperación de 10.000/8.000. No hubo desbordamiento de página en esas vistas ni errores/advertencias de consola durante el recorrido. Las tablas anchas conservan desplazamiento propio.
+
+No se probaron teléfono físico, lector de pantalla, proyector, todos los navegadores, despliegue ni fallos inducidos de los límites de error. El chequeo confirma los cuatro hashes originales; la revisión de Git confirma que no cambiaron `public/data`, `model.ts` ni dependencias. Las validaciones siguientes son históricas, no pruebas adicionales de esta ampliación.
+
+### Validación histórica del rediseño
+
+El rediseño se verificó en navegador de escritorio (1440 × 1000) en las seis vistas. Desde Inicio, el enlace de La Boca abrió el mapa con esa estación seleccionada. La serie de Córdoba mostró 744/744 registros disponibles.
+
+En el viewport móvil emulado (390 × 845) se verificaron Inicio, Mapa, Análisis, Intervenciones y Simulador. Escape cerró el menú y devolvió el foco al botón. Se agregó un sensor hipotético. Parque Centenario PM10 mostró 9/24 valores el 01/01 y la tabla indicó «Sin dato» en los faltantes. El período del 20/01 al 01/01 activó el error de fechas. Cuatro sensores a ARS 300.000 por unidad dieron un subtotal de ARS 6.200.000 con la plantación por defecto.
+
+La configuración de Work deshabilitó el navegador local durante la revisión. Quedaron pendientes la vista de Metodología en móvil y la comprobación visual de los últimos ajustes de CSS. La emulación no cubre un teléfono físico ni una matriz de navegadores.
+
+`typecheck`, `lint`, `check` y `build` pasaron tras el rediseño. El diff contra `320b744` confirma la conservación de datos, modelo, scripts, dependencias y atributos Git.
+
+### Validación del prototipo original
 
 Ejecutados satisfactoriamente: instalación con scripts bloqueados, `typecheck`, `lint`, `check`, `build` y `npm audit` (**0 vulnerabilidades**). El check focalizado protege 744 claves fecha/hora únicas, faltantes, cuatro hashes originales, presencia 3/15, fórmulas y cortes del gráfico. Revisión independiente comparó las 6.696 celdas del extracto con el CSV original sin diferencias.
 

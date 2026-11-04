@@ -16,8 +16,11 @@ import {
   Radio,
   Trash2,
 } from "lucide-react";
-import type { Sensor, Station, StationId, Territory } from "./model";
+import type { Row, Sensor, Station, StationId, Territory } from "./model";
 import { Badge, MethodLink } from "./ui";
+import ExtensionBoundary from "./ExtensionBoundary";
+import SensorReadings from "./SensorReadings";
+import TerritoryPanel from "./TerritoryPanel";
 
 type Geometry = Polygon | MultiPolygon;
 type CommuneFeature = Feature<Geometry, { comuna: number }>;
@@ -59,6 +62,7 @@ function interiorPoint(feature: CommuneFeature): L.LatLng {
   throw new Error("No se encontró un punto interior.");
 }
 type Props = {
+  rows: Row[];
   stations: Station[];
   territory: Territory[];
   communes: Communes;
@@ -68,6 +72,7 @@ type Props = {
   setSensors: React.Dispatch<React.SetStateAction<Sensor[]>>;
 };
 export default function MapView({
+  rows,
   stations,
   territory,
   communes,
@@ -77,6 +82,8 @@ export default function MapView({
   setSensors,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
+  const [contextCommune, setContextCommune] = useState(stations.find(s => s.id === selected)!.commune);
+  const viewport = useRef<{ center: L.LatLng; zoom: number } | null>(null);
   const [osm, setOsm] = useState(false),
     [adding, setAdding] = useState(false),
     [commune, setCommune] = useState(2),
@@ -105,14 +112,25 @@ export default function MapView({
         fillOpacity: 0.7,
       }),
       onEachFeature: (feature, layer) => {
-        layer.bindTooltip(`Comuna ${feature.properties.comuna}`, {
+        layer.on("click", () => {
+          if (!adding) setContextCommune(Number(feature.properties.comuna));
+        });
+        const communeLabel = document.createElement("span");
+        communeLabel.textContent = `C${feature.properties.comuna}`;
+        communeLabel.setAttribute(
+          "aria-label",
+          `Comuna ${feature.properties.comuna}`,
+        );
+        layer.bindTooltip(communeLabel, {
           permanent: true,
           direction: "center",
           className: "commune-label",
         });
       },
     }).addTo(map);
-    map.fitBounds(polygons.getBounds(), { padding: [28, 28] });
+    if (viewport.current)
+      map.setView(viewport.current.center, viewport.current.zoom, { animate: false });
+    else map.fitBounds(polygons.getBounds(), { padding: [28, 28] });
     if (osm) {
       const tiles = L.tileLayer(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -169,7 +187,7 @@ export default function MapView({
         title: `Sensor simulado ${sensor.id}, comuna ${sensor.commune}`,
       })
         .addTo(map)
-        .bindTooltip(`SIMULADO · Sin lecturas · Comuna ${sensor.commune}`);
+        .bindTooltip(`SIMULADO · Muestra hipotética en la ficha · Comuna ${sensor.commune}`);
     map.on("click", (event) => {
       if (!adding) return;
       const feature = communes.features.find((f) =>
@@ -190,12 +208,13 @@ export default function MapView({
       ]);
       setAdding(false);
       setMessage(
-        `Sensor hipotético agregado en comuna ${feature.properties.comuna}. No genera mediciones.`,
+        `Sensor hipotético agregado en comuna ${feature.properties.comuna}. No genera mediciones reales.`,
       );
     });
     const observer = new ResizeObserver(() => map.invalidateSize());
     observer.observe(container.current);
     return () => {
+      viewport.current = { center: map.getCenter(), zoom: map.getZoom() };
       observer.disconnect();
       map.remove();
     };
@@ -215,6 +234,7 @@ export default function MapView({
       (f) => Number(f.properties.comuna) === commune,
     )!;
     const point = interiorPoint(feature);
+    setAdding(false);
     setSensors((current) => [
       ...current,
       {
@@ -225,7 +245,7 @@ export default function MapView({
       },
     ]);
     setMessage(
-      `Sensor hipotético agregado en un punto interior de la comuna ${commune}. No genera mediciones.`,
+      `Sensor hipotético agregado en un punto interior de la comuna ${commune}. No genera mediciones reales.`,
     );
   }
   return (
@@ -233,7 +253,7 @@ export default function MapView({
       <div className="page-heading">
         <div>
           <div className="eyebrow">DIMENSIÓN TERRITORIAL</div>
-          <h1>Una ciudad, distintas miradas.</h1>
+          <h1>Estaciones y territorio</h1>
           <p>
             Explorá dónde se encuentran los puntos del catálogo y pensá nuevas
             ubicaciones.
@@ -241,16 +261,13 @@ export default function MapView({
         </div>
         <Badge kind="calculated">CALCULADO · PRESENCIA TERRITORIAL</Badge>
       </div>
-      <div className="map-layout">
-        <section
-          className="panel map-panel"
-          aria-label="Mapa de las comunas de CABA"
-        >
+      <div className="map-layout panel">
+        <section className="map-panel" aria-label="Mapa de las comunas de CABA">
           <div className="panel-toolbar">
             <div className="toolbar-title">
               <MapPin size={18} />
               <strong>Ciudad de Buenos Aires</strong>
-              <span className="subtle">15 comunas</span>
+              <span className="subtle">15 comunas · contexto C{contextCommune}</span>
             </div>
             <label className="toggle">
               <input
@@ -268,12 +285,6 @@ export default function MapView({
             role="region"
             aria-label="Mapa interactivo. Alternativa accesible: lista de estaciones y selector de comuna."
           />
-          <div className="map-watermark">
-            CABA<span>REPÚBLICA ARGENTINA</span>
-          </div>
-          <div className="river-label" aria-hidden="true">
-            RÍO DE LA PLATA
-          </div>
           <div className="map-legend">
             <span>
               <i className="legend-dot" /> Punto del catálogo
@@ -302,7 +313,7 @@ export default function MapView({
           )}
         </section>
         <aside className="map-side">
-          <section className="panel station-card">
+          <section className="station-card">
             <div className="eyebrow">ESTACIÓN SELECCIONADA</div>
             <div className="station-symbol">
               <Radio size={26} />
@@ -347,99 +358,107 @@ export default function MapView({
               esté completa.
             </small>
           </section>
-          <section className="panel territorial-card">
-            <div className="eyebrow">LEER EL TERRITORIO</div>
-            <div className="territory-stat">
-              {territory.filter((t) => t.stations.length).length}
-              <span>/ {territory.length}</span>
-            </div>
-            <strong>comunas con puntos del catálogo</strong>
-            <div
-              className="commune-grid"
-              aria-label="Comunas con puntos: 1, 4 y 6"
-            >
-              {territory.map((t) => (
-                <span
-                  key={t.commune}
-                  className={t.stations.length ? "occupied" : ""}
-                  title={`Comuna ${t.commune}: ${t.stations.length ? "con punto" : "sin punto en este catálogo"}`}
-                >
-                  {t.commune}
-                </span>
-              ))}
-            </div>
-            <p>
-              Presencia territorial, no cobertura de calidad del aire. Las otras
-              12 comunas no tienen puntos en este catálogo seleccionado.
-            </p>
-            <MethodLink />
-          </section>
         </aside>
       </div>
-      <section className="panel sensor-controls">
-        <div>
-          <Badge kind="simulated">SIMULADO</Badge>
-          <h2>Proponé un punto de monitoreo</h2>
-          <p>
-            Un ejercicio de ubicación: sin lecturas, radios de alcance ni
-            cambios en el indicador oficial.
-          </p>
-        </div>
-        <div className="sensor-form">
-          <label>
-            Comuna para ubicar el sensor
-            <select
-              value={commune}
-              onChange={(e) => setCommune(Number(e.target.value))}
-            >
-              {territory.map((t) => (
-                <option key={t.commune} value={t.commune}>
-                  Comuna {t.commune} · {t.neighborhoods}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button className="button secondary" onClick={addAccessible}>
-            <LocateFixed size={17} /> Ubicar en esta comuna
-          </button>
-        </div>
-        <div className="status-message" role="status">
-          {message ||
-            `${sensors.length} sensores hipotéticos en el mapa. Se conservan mientras navegás.`}
-        </div>
-        {sensors.length > 0 && (
-          <div className="sensor-list">
-            {sensors.map((s, index) => (
-              <div key={s.id}>
-                <span>
-                  <i className="legend-dot purple" /> Sensor {index + 1} ·
-                  Comuna {s.commune} <small>SIMULADO · sin lecturas</small>
-                </span>
-                <button
-                  className="icon-button"
-                  aria-label={`Eliminar sensor ${index + 1}`}
-                  onClick={() =>
-                    setSensors((current) =>
-                      current.filter((item) => item.id !== s.id),
-                    )
-                  }
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
+      <div className="territory-sensor-layout">
+        <section className="territorial-card">
+          <div className="eyebrow">LEER EL TERRITORIO</div>
+          <div className="territory-stat">
+            {territory.filter((t) => t.stations.length).length}
+            <span>/ {territory.length}</span>
+          </div>
+          <strong>comunas con puntos del catálogo</strong>
+          <div
+            className="commune-grid"
+            aria-label="Comunas con puntos: 1, 4 y 6"
+          >
+            {territory.map((t) => (
+              <span
+                key={t.commune}
+                className={t.stations.length ? "occupied" : ""}
+                title={`Comuna ${t.commune}: ${t.stations.length ? "con punto" : "sin punto en este catálogo"}`}
+              >
+                {t.commune}
+              </span>
             ))}
-            <button
-              className="text-button"
-              onClick={() => {
-                setSensors([]);
-                setMessage("Se quitaron todos los sensores hipotéticos.");
-              }}
-            >
-              Quitar todos
+          </div>
+          <p>
+            Presencia territorial, no cobertura de calidad del aire. Las otras
+            12 comunas no tienen puntos en este catálogo seleccionado.
+          </p>
+          <MethodLink />
+        </section>
+        <section className="panel sensor-controls">
+          <div>
+            <Badge kind="simulated">SIMULADO</Badge>
+            <h2>Proponé un punto de monitoreo</h2>
+            <p>
+              Puntos hipotéticos con una muestra sintética opcional. No hay dispositivos físicos ni mediciones reales.
+            </p>
+          </div>
+          <div className="sensor-form">
+            <label>
+              Comuna para ubicar el sensor
+              <select
+                value={commune}
+                onChange={(e) => setCommune(Number(e.target.value))}
+              >
+                {territory.map((t) => (
+                  <option key={t.commune} value={t.commune}>
+                    Comuna {t.commune} · {t.neighborhoods}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="button secondary" onClick={addAccessible}>
+              <LocateFixed size={17} /> Ubicar en esta comuna
             </button>
           </div>
-        )}
-      </section>
+          <div className="status-message" role="status">
+            {message ||
+              (sensors.length === 1
+                ? "1 sensor hipotético en el mapa. Se conserva mientras navegás."
+                : `${sensors.length} sensores hipotéticos en el mapa. Se conservan mientras navegás.`)}
+          </div>
+          {sensors.length > 0 && (
+            <div className="sensor-list">
+              {sensors.map((s) => (
+                <div key={s.id}>
+                  <span>
+                    <i className="legend-dot purple" /> Sensor {s.id} ·
+                    Comuna {s.commune} <small>SIMULADO · datos hipotéticos</small>
+                  </span>
+                  <button
+                    className="icon-button"
+                    aria-label={`Eliminar sensor ${s.id}`}
+                    onClick={() =>
+                      setSensors((current) =>
+                        current.filter((item) => item.id !== s.id),
+                      )
+                    }
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                  <ExtensionBoundary><SensorReadings sensor={s} /></ExtensionBoundary>
+                </div>
+              ))}
+              <button
+                className="text-button"
+                onClick={() => {
+                  setSensors([]);
+                  setMessage("Se quitaron todos los sensores hipotéticos.");
+                }}
+              >
+                Quitar todos
+              </button>
+            </div>
+          )}
+        </section>
+      </div>
+      <ExtensionBoundary>
+        <TerritoryPanel territory={territory} stations={stations} rows={rows}
+          commune={contextCommune} setCommune={setContextCommune} setSelected={setSelected} />
+      </ExtensionBoundary>
       <div className="note">
         <strong>Una brecha de información no demuestra contaminación.</strong>{" "}
         Estos puntos no permiten inferir la calidad del aire de cada barrio ni

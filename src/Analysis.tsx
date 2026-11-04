@@ -52,7 +52,7 @@ export default function Analysis({
       <div className="page-heading">
         <div>
           <div className="eyebrow">DIMENSIÓN AMBIENTAL</div>
-          <h1>El aire, en perspectiva.</h1>
+          <h1>Análisis de mediciones</h1>
           <p>
             Leé la serie histórica de una estación, con sus unidades y sus
             límites.
@@ -121,8 +121,8 @@ export default function Analysis({
         </div>
       ) : (
         <>
-          <div className="stats-grid analysis-stats">
-            <div className="panel stat">
+          <div className="analysis-stats">
+            <div className="stat">
               <span>REGISTROS DISPONIBLES</span>
               <strong>
                 {number(available.length)} <small>/ {number(expected)}</small>
@@ -133,7 +133,7 @@ export default function Analysis({
                 del período
               </p>
             </div>
-            <div className="panel stat">
+            <div className="stat">
               <span>MÍNIMO REPORTADO</span>
               <strong>
                 {available.length ? number(lowest, 2) : "—"}{" "}
@@ -144,7 +144,7 @@ export default function Analysis({
                 disponibles
               </p>
             </div>
-            <div className="panel stat">
+            <div className="stat">
               <span>MÁXIMO REPORTADO</span>
               <strong>
                 {available.length ? number(highest, 2) : "—"}{" "}
@@ -274,7 +274,7 @@ export default function Analysis({
             <div className="chart-footer">
               <span>
                 <Info size={15} /> {number(expected - available.length)}{" "}
-                faltantes · se muestran como interrupciones, nunca como cero.
+                faltantes
               </span>
               <MethodLink />
             </div>
@@ -323,10 +323,9 @@ export default function Analysis({
       <div className="note">
         <Info size={20} />
         <div>
-          <strong>Una lectura requiere contexto.</strong>
+          <strong>No utilizar esta información sin entender el contexto.</strong>
           <p>
-            Los promedios móviles se superponen. No son valores instantáneos ni
-            promedios diarios independientes. Este prototipo no clasifica riesgo
+            Los promedios móviles se superponen. Este prototipo no clasifica riesgo
             sanitario ni cumplimiento normativo.
           </p>
         </div>
