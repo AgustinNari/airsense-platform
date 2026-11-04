@@ -313,7 +313,7 @@ export default function App() {
               </div>
               {page === "intervenciones" && <Interventions />}
               <div hidden={page !== "simulador"}>
-                <Simulator mappedSensors={sensors.length} />
+                <Simulator mappedSensors={sensors.length} active={page === "simulador"} />
               </div>
               {page === "metodologia" && <Methodology />}
             </>

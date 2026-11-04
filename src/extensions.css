@@ -38,10 +38,33 @@
 .sensor-list .sensor-reading .extension-body { padding: 12px 0; }
 .sensor-list .sensor-reading p { color: var(--muted); }
 .sensor-list .sensor-reading small { margin-left: 0; }
+.projection-controls { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.projection-controls .projection-hepa-toggle { flex-direction: row; align-items: center; }
+.projection-hepa-toggle input { width: 20px; min-height: 20px; flex-shrink: 0; }
+.projection-panel .range-field { margin-bottom: 28px; }
+.projection-visual { margin: 20px 0; }
+.projection-visual svg { display: block; width: 100%; height: auto; }
+.projection-visual figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); }
+.projection-panel .extension-metrics small { display: block; margin-top: 8px; color: var(--muted); }
+.projection-panel tr[aria-current="true"] { background: #f5effa; }
+.projection-step { margin: 24px 0; padding: 20px; border: 1px solid var(--line); border-radius: 8px; }
+.projection-step > summary { cursor: pointer; font-weight: 600; padding: 8px 0; min-height: 44px; }
+.projection-step fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.projection-step legend { font-size: 14px; color: var(--muted); }
+.projection-step .number-field { margin-top: 0; }
+.projection-step input[type="text"] { border: 1px solid #c9d9df; border-radius: 6px; padding: 9px 12px; color: var(--ink); font-size: 16px; }
+.projection-legend { display: flex; flex-wrap: wrap; gap: 10px 20px; color: var(--muted); font-size: 13px; }
+.projection-legend span:first-child { color: var(--teal); }
+.projection-legend span:nth-child(2) { color: var(--purple); }
+.projection-disclaimer { padding: 16px; border-left: 3px solid var(--purple); background: #f5effa; }
+.projection-panel .projection-hepa-toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+.simulator-sections { margin-bottom: 24px; }
 @media (max-width: 980px) {
   .extension-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 540px) {
+  .projection-step { padding: 14px; }
+  .simulator-sections { flex-wrap: wrap; }
   .extension-body { padding: 18px; }
   .extension-panel > summary { padding: 16px 18px; font-size: 15px; }
   .extension-form, .extension-columns, .extension-metrics { grid-template-columns: 1fr; gap: 16px; }

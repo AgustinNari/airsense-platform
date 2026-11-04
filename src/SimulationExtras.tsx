@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { money, number, seriesPath } from "./model";
 import { scenarioResults, treeTimeline } from "./extensions";
 import type { Scenario } from "./extensions";
@@ -41,11 +42,11 @@ export function TreeEvolution({ planted, survival, years }: {
   );
 }
 
-type Saved = { id: number; name: string; inputs: Scenario };
-export function ScenarioComparison({ scenario, tab, invalid }: {
+export type Saved = { id: number; name: string; inputs: Scenario };
+export function ScenarioComparison({ scenario, tab, invalid, saved, setSaved }: {
   scenario: Scenario; tab: string; invalid: boolean;
+  saved: Saved[]; setSaved: Dispatch<SetStateAction<Saved[]>>;
 }) {
-  const [saved, setSaved] = useState<Saved[]>([]);
   const [name, setName] = useState("");
   const [nextId, setNextId] = useState(1);
   const [message, setMessage] = useState("");

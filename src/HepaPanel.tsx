@@ -4,14 +4,15 @@ import type { HepaInputs } from "./extensions";
 import { money, number } from "./model";
 import { Badge, MethodLink } from "./ui";
 
-export default function HepaPanel() {
-  const [inputs, setInputs] = useState<HepaInputs>(hepaDefaults);
+export default function HepaPanel({ inputs, setInputs }: {
+  inputs: HepaInputs; setInputs: (inputs: HepaInputs) => void;
+}) {
   const [drafts, setDrafts] = useState<Partial<Record<keyof HepaInputs, string>>>({});
   const [errors, setErrors] = useState<Partial<Record<keyof HepaInputs, string>>>({});
   const prefix = useId();
   const result = hepaResults(inputs);
   return (
-    <details className="panel extension-panel">
+    <details className="panel extension-panel" open>
       <summary>Filtración HEPA interior · simulación complementaria</summary>
       <div className="extension-body">
         <Badge kind="simulated">CAPACIDAD TEÓRICA · INTERIOR HIPOTÉTICO</Badge>

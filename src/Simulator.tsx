@@ -13,6 +13,9 @@ import { Badge, MethodLink } from "./ui";
 import ExtensionBoundary from "./ExtensionBoundary";
 import HepaPanel from "./HepaPanel";
 import { ScenarioComparison, TreeEvolution } from "./SimulationExtras";
+import type { Saved } from "./SimulationExtras";
+import { hepaDefaults } from "./extensions";
+import FutureProjection from "./FutureProjection";
 const defaults = {
   vehicles: 10000,
   reduction: 20,
@@ -59,13 +62,18 @@ function CompareBars({
 }
 export default function Simulator({
   mappedSensors,
+  active,
 }: {
   mappedSensors: number;
+  active: boolean;
 }) {
   const [scenario, setScenario] = useState<Scenario>(defaults),
     [tab, setTab] = useState("traffic");
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [drafts, setDrafts] = useState<Partial<Record<keyof Scenario, string>>>({});
+  const [saved, setSaved] = useState<Saved[]>([]);
+  const [hepa, setHepa] = useState(hepaDefaults);
+  const [section, setSection] = useState("basic");
   const traffic = finalTraffic(scenario.vehicles, scenario.reduction),
     survivors = survivingTrees(
       scenario.trees,
@@ -85,6 +93,7 @@ export default function Simulator({
     max: number,
     unit: string,
     min = 0,
+    prefix = "basic",
   ) {
     return (
       <label className="number-field">
@@ -97,7 +106,7 @@ export default function Simulator({
             step="1"
             value={drafts[key] ?? scenario[key]}
             aria-invalid={!!errors[key]}
-            aria-describedby={errors[key] ? `${key}-error` : undefined}
+            aria-describedby={errors[key] ? `${prefix}-${key}-error` : undefined}
             onChange={(e) => {
               setDrafts((current) => ({ ...current, [key]: e.target.value }));
               const value = Number(e.target.value);
@@ -125,7 +134,7 @@ export default function Simulator({
           <span>{unit}</span>
         </div>
         {errors[key] && (
-          <small id={`${key}-error`} className="field-error" role="alert">
+          <small id={`${prefix}-${key}-error`} className="field-error" role="alert">
             {errors[key]}
           </small>
         )}
@@ -144,6 +153,7 @@ export default function Simulator({
         </div>
         <button
           className="button secondary"
+          hidden={section !== "basic"}
           onClick={() => {
             setScenario(defaults);
             setErrors({});
@@ -152,6 +162,10 @@ export default function Simulator({
         >
           <RotateCcw size={16} /> Restablecer escenario
         </button>
+      </div>
+      <div className="simulation-tabs simulator-sections" role="group" aria-label="Secciones del simulador">
+        {[["basic", "Simulación básica"], ["projection", "Proyección interactiva"], ["hepa", "Filtración HEPA"]].map(([id,label]) =>
+          <button key={id} aria-pressed={section === id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}</button>)}
       </div>
       <div className="simulation-banner">
         <span className="simulation-icon">
@@ -166,6 +180,7 @@ export default function Simulator({
         </div>
         <Badge kind="simulated">SIMULADO</Badge>
       </div>
+      <div hidden={section !== "basic"}>
       <div
         className="simulation-tabs"
         role="group"
@@ -270,7 +285,7 @@ export default function Simulator({
                 <CarFront size={26} />
               </div>
               <h2>Actividad vehicular resultante</h2>
-              <p>La concentración del aire requiere medición propia.</p>
+              <p>La concentración de contaminantes requiere mediciones propias.</p>
               <div className="big-result">
                 {number(traffic)}
                 <span>vehículos/día en el escenario alternativo</span>
@@ -382,10 +397,25 @@ export default function Simulator({
       {tab === "trees" && <ExtensionBoundary>
         <TreeEvolution planted={scenario.trees} survival={scenario.survival} years={scenario.years} />
       </ExtensionBoundary>}
+      </div>
+      <div hidden={section !== "projection"}>
+        <ExtensionBoundary>
+          <FutureProjection scenario={scenario} saved={saved} hepa={hepa} mappedSensors={mappedSensors}
+            active={active && section === "projection"}
+            onHorizonChange={years => setScenario(current => ({ ...current, years }))}
+            renderField={(key, label, max, unit, min = 0) => field(key, label, max, unit, min, "projection")}
+            onExample={() => { setScenario(defaults); setErrors({}); setDrafts({}); }}
+            onOpenHepa={() => setSection("hepa")} />
+        </ExtensionBoundary>
+      </div>
+      <div hidden={section === "hepa"}>
       <ExtensionBoundary>
-        <ScenarioComparison scenario={scenario} tab={tab} invalid={Object.values(errors).some(Boolean)} />
+        <ScenarioComparison scenario={scenario} tab={section === "projection" ? "traffic" : tab} invalid={Object.values(errors).some(Boolean)} saved={saved} setSaved={setSaved} />
       </ExtensionBoundary>
-      <ExtensionBoundary><HepaPanel /></ExtensionBoundary>
+      </div>
+      <div hidden={section !== "hepa"}>
+      <ExtensionBoundary><HepaPanel inputs={hepa} setInputs={setHepa} /></ExtensionBoundary>
+      </div>
     </>
   );
 }

@@ -416,7 +416,9 @@ export default function MapView({
           </div>
           <div className="status-message" role="status">
             {message ||
-              `${sensors.length} sensores hipotéticos en el mapa. Se conservan mientras navegás.`}
+              (sensors.length === 1
+                ? "1 sensor hipotético en el mapa. Se conserva mientras navegás."
+                : `${sensors.length} sensores hipotéticos en el mapa. Se conservan mientras navegás.`)}
           </div>
           {sensors.length > 0 && (
             <div className="sensor-list">

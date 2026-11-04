@@ -47,3 +47,15 @@ Esta iteración amplía el alcance del rediseño anterior: permite módulos, pru
 - Comparación: tres copias temporales de configuraciones principales, con parámetros, unidades y horizontes explícitos. Eliminar/vaciar sin cambiar el escenario actual; recargar reinicia. HEPA permanece independiente.
 - Paneles secundarios con límites de error propios; su fallo no debe impedir consultas oficiales ni el simulador principal. Estado solo en memoria.
 - Aceptación: conservar el recorrido original; comprobar las ampliaciones, casos límite, desktop y móvil, typecheck/lint/check/build y ausencia de modificaciones en public/data o model.ts.
+
+## Proyección interactiva
+
+Evolucionar FutureProjection, sin duplicarlo. Secciones básica/proyección/HEPA, sin nuevas rutas. Parámetros básicos y copias compartidos; datos oficiales y dependencias intactos. Cuatro etapas: situación inicial común, intervenciones, ejecución y resultados. Ejemplo precargado editable; árboles iniciales y niveles NO₂/PM10 relativos 0–300, sin unidades físicas ni observaciones oficiales.
+
+Año 0 previo a intervenciones; aplicación común en año s (1–30); a=t−s. Tránsito posterior = inicial×(1−r/100); nuevos árboles = plantados×(supervivencia/100)^a. Árboles iniciales constantes como referencia. Costos = compras al llegar a s + electricidad HEPA×365×a. Sin mantenimiento, inflación ni reposición. La curva básica conserva su año 0 de plantación.
+
+NO₂/PM10 = B×max(0,1−α×r/100−β×G), G=min(N(a)/100,1)×min(a/10,1). Coeficientes arbitrarios: NO₂ (0,30;0,05), PM10 (0,15;0,10). Antes de s no hay ajustes; cero vehículos anula el término de tránsito. 100 es referencia sintética, no concentración ni ICA/AQI. HEPA/sensores nunca afectan esas curvas. Retirar protagonismo del índice genérico anterior.
+
+Inicio/pausa/reanudación/reinicio/velocidad, pasos manuales y resultado final. Un intervalo con limpieza; deshabilitar inicios simultáneos. Parámetros nuevos invalidan la ejecución y vuelven a año 0. Salir pausa; movimiento reducido usa modo manual. Gráficos, tarjetas, tabla y vista SVG simbólica sincronizados. Dos alternativas en mismo calendario/horizonte; copias básicas inmutables, condiciones ambientales y HEPA comunes explícitos. Límite de errores conserva el resto del sitio.
+
+Validar cálculos, extremos, reproducción, comparación, HEPA, móvil y recorrido académico. No commits ni push automáticos.
