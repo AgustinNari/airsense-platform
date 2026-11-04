@@ -31,6 +31,19 @@ Inicio → Mapa territorial → Córdoba → Consultar mediciones → agregar un
 - Simulador de base/alternativa para actividad vehicular, supervivencia de árboles y dispositivos adicionales. Supuestos y costos editables; barras de la misma unidad, restablecimiento y subtotal ilustrativo.
 - Metodología accesible desde resultados. Estación, filtros, escenario y sensores persisten al navegar; recargar reinicia el estado. Controles nativos, navegación por teclado, foco visible y estilos adaptables.
 
+### Herramientas complementarias
+
+Los paneles nuevos se abren a pedido y no cambian el recorrido principal ni los valores predeterminados.
+
+- **Mapa → Contexto territorial:** selector de comuna y selección por clic en polígonos fuera del modo de colocación; barrios, puntos del catálogo y disponibilidad por contaminante. Las comunas sin puntos se agrupan como oportunidades de estudio, sin ranking de contaminación. No se agregaron capas externas ni ubicaciones de escuelas, hospitales o conteos de tránsito.
+- **Recomendaciones:** presencia de puntos como criterio de información; movilidad, interiores y arbolado como contextos explícitamente hipotéticos. Se explica el motivo, lo que falta y los límites, con acceso al catálogo existente.
+- **Ficha de sensor:** muestra determinista opcional de PM10, temperatura y humedad. Se calcula desde el ID, sin fecha ni ventana de medición real, sin relación con el sitio y sin mezclarse con series oficiales. No hay dispositivo ni transmisión IoT.
+- **Arbolado → Evolución:** gráfico SVG y tabla anual desde año 0 hasta el horizonte existente, evaluando la misma supervivencia. No se proyectan crecimiento, captura de partículas ni mantenimiento.
+- **Comparar alternativas:** hasta tres copias completas de los parámetros actuales en memoria. La tabla sigue la pestaña activa (tránsito, arbolado o sensores), con bases, horizontes y unidades explícitos. Se pueden nombrar, eliminar y vaciar. Restablecer el escenario actual conserva las copias; recargar las elimina. HEPA tiene parámetros y presupuesto independientes y no integra esta tabla.
+- **HEPA interior:** volumen = superficie × altura; CADR total = cantidad × CADR por equipo; eACH = CADR total / volumen. Energía diaria = cantidad × W / 1.000 × horas; electricidad diaria = kWh × tarifa; compra = cantidad × costo unitario. CADR en m³/h y volumen en m³. Con 0 horas, energía y electricidad son cero; CADR/eACH siguen indicando capacidad al encenderlos. No se predice un porcentaje de reducción de PM2.5 ni se trata aire exterior. Equipos, costos y tarifa son supuestos editables, sin filtros de repuesto ni mantenimiento.
+
+Implementación: `extensions.ts` contiene cálculos y reglas; `SimulationExtras`, `HepaPanel`, `TerritoryPanel`, `SensorReadings` y `ExtensionMethodology` contienen paneles. `extensions.css` conserva la paleta y los estilos existentes. Cada herramienta complementaria se envuelve en `ExtensionBoundary` para aislar errores de renderizado. No hay dependencias nuevas.
+
 El recorrido carga archivos locales; no requiere una API en vivo ni internet tras instalar y arrancar el servidor. **No es una PWA ni garantiza uso sin un servidor local.** El fondo opcional OpenStreetMap requiere internet y solicita teselas a ese proveedor, con atribución visible. La geometría local sigue disponible si falla el fondo.
 
 ## Datos y límites científicos
@@ -49,9 +62,19 @@ No hay PM2.5. Se conserva HORA 1–24 y la fecha de la fuente: la hora 24 no se 
 
 Las **3/15 comunas con puntos** miden presencia territorial en este catálogo, no cobertura de calidad del aire, exposición o población beneficiada. La asignación depende de la precisión de coordenadas y límites; los puntos limítrofes pueden cambiar de comuna. No se extrapola concentración por cuadra ni se usan radios de alcance.
 
-Los resultados distinguen OBSERVADO, CALCULADO, SUPUESTO y SIMULADO. Tránsito modela actividad, no concentración. La supervivencia supone tasa constante y ausencia de reposición. Los costos en ARS son ilustrativos: solo plantación y dispositivos; excluyen programa de tránsito, mantenimiento, instalación de sensores y operación. Los sensores hipotéticos no generan lecturas y el presupuesto de dispositivos es independiente del mapa. Validar eficacia requiere intervención física y medición posterior.
+Los resultados distinguen OBSERVADO, CALCULADO, SUPUESTO y SIMULADO. Tránsito modela actividad, no concentración. La supervivencia supone tasa constante y ausencia de reposición. El subtotal principal en ARS es ilustrativo: solo plantación y sensores; excluye programa de tránsito, mantenimiento, instalación de sensores y operación. HEPA calcula compra y electricidad por separado. Los sensores hipotéticos no generan mediciones reales: su ficha contiene solo ejemplos sintéticos, independientes de los datos oficiales. El presupuesto de dispositivos es independiente del mapa. Validar eficacia requiere intervención física y medición posterior.
 
 ## Validación
+
+El chequeo existente incluye pruebas de evolución anual (año 0, tasas 0/100%, horizonte máximo), resultados de escenarios, HEPA (unidades, equipo/capacidad/horas/tarifa cero, límites y divisiones inválidas), muestras sintéticas y reglas de monitoreo. Se preservan los chequeos de datos oficiales, fórmulas originales y discontinuidades.
+
+En esta ampliación se ejecutaron `typecheck`, `lint`, `check` y `build` satisfactoriamente. En navegador de escritorio se comprobaron el recorrido existente, NO₂ de Córdoba (744/744), selección de comuna por polígono y selector, contexto con/sin puntos, recomendación hipotética de interior y ficha sintética del sensor. Se guardaron alternativas de tránsito 10/20/30% (9.000/8.000/7.000 vehículos/día), se verificó que las copias no cambian al editar, el límite de tres y la eliminación. La tabla anual mostró 100, 90, 81, 72,9, 65,61 y 59,05 árboles en años 0–5.
+
+HEPA mostró 180 m³, 600 m³/h, 3,33 h⁻¹, 0,8 kWh/día y ARS 120/día con sus supuestos iniciales. Se comprobaron volumen cero inválido, vaciado y reemplazo del campo, actualización a 80 m² y operación de 0 horas. En viewport móvil emulado (390 × 845) se inspeccionaron contexto territorial, ficha sintética, HEPA y metodología ampliada; se verificaron alta por comuna con cancelación de colocación, cero equipos, persistencia de comparación al navegar, vaciado y recuperación de 10.000/8.000. No hubo desbordamiento de página en esas vistas ni errores/advertencias de consola durante el recorrido. Las tablas anchas conservan desplazamiento propio.
+
+No se probaron teléfono físico, lector de pantalla, proyector, todos los navegadores, despliegue ni fallos inducidos de los límites de error. El chequeo confirma los cuatro hashes originales; la revisión de Git confirma que no cambiaron `public/data`, `model.ts` ni dependencias. Las validaciones siguientes son históricas, no pruebas adicionales de esta ampliación.
+
+### Validación histórica del rediseño
 
 El rediseño se verificó en navegador de escritorio (1440 × 1000) en las seis vistas. Desde Inicio, el enlace de La Boca abrió el mapa con esa estación seleccionada. La serie de Córdoba mostró 744/744 registros disponibles.
 

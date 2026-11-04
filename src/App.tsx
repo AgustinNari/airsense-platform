@@ -26,6 +26,8 @@ import type { Communes } from "./MapView";
 import Analysis from "./Analysis";
 import Simulator from "./Simulator";
 import { Badge, MethodLink, SourceLink } from "./ui";
+import ExtensionBoundary from "./ExtensionBoundary";
+import ExtensionMethodology from "./ExtensionMethodology";
 type Page =
   | "inicio"
   | "mapa"
@@ -319,7 +321,7 @@ export default function App() {
           <footer className="footer">
             <span>
               <Wind size={17} /> AirSense{" "}
-              <span className="footer-separator">/</span> UADE · Seminario 2
+              <span className="footer-separator">/</span> Aire Urbano Inteligente
             </span>
             <a href="#metodologia">
               Fuentes, supuestos y límites <ArrowUpRight size={13} />
@@ -488,7 +490,7 @@ function Home({
             {
               id: "mapa",
               title: "Proponé un sensor",
-              description: "Ubicá un punto simulado sin lecturas.",
+              description: "Ubicá un punto simulado con una muestra hipotética opcional.",
               Icon: Radio,
             },
             {
@@ -814,7 +816,8 @@ function Methodology() {
             </p>
             <p>
               Los sensores simulados se ubican dentro de CABA y no generan
-              lecturas. El selector accesible propone un punto interior validado
+              mediciones reales. Su ficha opcional muestra un ejemplo sintético de datos, sin relación con la ubicación.
+              El selector accesible propone un punto interior validado
               de la comuna elegida; no es una recomendación técnica de sitio. Se
               conservan en memoria mientras se navega y se pueden quitar.
             </p>
@@ -873,6 +876,7 @@ function Methodology() {
             </p>
           </div>
         </details>
+        <ExtensionBoundary><ExtensionMethodology /></ExtensionBoundary>
       </section>
       <div className="note">
         <ShieldCheck size={22} />

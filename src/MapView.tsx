@@ -16,8 +16,11 @@ import {
   Radio,
   Trash2,
 } from "lucide-react";
-import type { Sensor, Station, StationId, Territory } from "./model";
+import type { Row, Sensor, Station, StationId, Territory } from "./model";
 import { Badge, MethodLink } from "./ui";
+import ExtensionBoundary from "./ExtensionBoundary";
+import SensorReadings from "./SensorReadings";
+import TerritoryPanel from "./TerritoryPanel";
 
 type Geometry = Polygon | MultiPolygon;
 type CommuneFeature = Feature<Geometry, { comuna: number }>;
@@ -59,6 +62,7 @@ function interiorPoint(feature: CommuneFeature): L.LatLng {
   throw new Error("No se encontró un punto interior.");
 }
 type Props = {
+  rows: Row[];
   stations: Station[];
   territory: Territory[];
   communes: Communes;
@@ -68,6 +72,7 @@ type Props = {
   setSensors: React.Dispatch<React.SetStateAction<Sensor[]>>;
 };
 export default function MapView({
+  rows,
   stations,
   territory,
   communes,
@@ -77,6 +82,7 @@ export default function MapView({
   setSensors,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
+  const [contextCommune, setContextCommune] = useState(stations.find(s => s.id === selected)!.commune);
   const viewport = useRef<{ center: L.LatLng; zoom: number } | null>(null);
   const [osm, setOsm] = useState(false),
     [adding, setAdding] = useState(false),
@@ -106,6 +112,9 @@ export default function MapView({
         fillOpacity: 0.7,
       }),
       onEachFeature: (feature, layer) => {
+        layer.on("click", () => {
+          if (!adding) setContextCommune(Number(feature.properties.comuna));
+        });
         const communeLabel = document.createElement("span");
         communeLabel.textContent = `C${feature.properties.comuna}`;
         communeLabel.setAttribute(
@@ -178,7 +187,7 @@ export default function MapView({
         title: `Sensor simulado ${sensor.id}, comuna ${sensor.commune}`,
       })
         .addTo(map)
-        .bindTooltip(`SIMULADO · Sin lecturas · Comuna ${sensor.commune}`);
+        .bindTooltip(`SIMULADO · Muestra hipotética en la ficha · Comuna ${sensor.commune}`);
     map.on("click", (event) => {
       if (!adding) return;
       const feature = communes.features.find((f) =>
@@ -199,7 +208,7 @@ export default function MapView({
       ]);
       setAdding(false);
       setMessage(
-        `Sensor hipotético agregado en comuna ${feature.properties.comuna}. No genera mediciones.`,
+        `Sensor hipotético agregado en comuna ${feature.properties.comuna}. No genera mediciones reales.`,
       );
     });
     const observer = new ResizeObserver(() => map.invalidateSize());
@@ -236,7 +245,7 @@ export default function MapView({
       },
     ]);
     setMessage(
-      `Sensor hipotético agregado en un punto interior de la comuna ${commune}. No genera mediciones.`,
+      `Sensor hipotético agregado en un punto interior de la comuna ${commune}. No genera mediciones reales.`,
     );
   }
   return (
@@ -258,7 +267,7 @@ export default function MapView({
             <div className="toolbar-title">
               <MapPin size={18} />
               <strong>Ciudad de Buenos Aires</strong>
-              <span className="subtle">15 comunas</span>
+              <span className="subtle">15 comunas · contexto C{contextCommune}</span>
             </div>
             <label className="toggle">
               <input
@@ -384,7 +393,7 @@ export default function MapView({
             <Badge kind="simulated">SIMULADO</Badge>
             <h2>Proponé un punto de monitoreo</h2>
             <p>
-              IMPORTANTE: estos puntos son para una visualización visual y estratégica. No generan mediciones.
+              Puntos hipotéticos con una muestra sintética opcional. No hay dispositivos físicos ni mediciones reales.
             </p>
           </div>
           <div className="sensor-form">
@@ -411,15 +420,15 @@ export default function MapView({
           </div>
           {sensors.length > 0 && (
             <div className="sensor-list">
-              {sensors.map((s, index) => (
+              {sensors.map((s) => (
                 <div key={s.id}>
                   <span>
-                    <i className="legend-dot purple" /> Sensor {index + 1} ·
-                    Comuna {s.commune} <small>SIMULADO · sin lecturas</small>
+                    <i className="legend-dot purple" /> Sensor {s.id} ·
+                    Comuna {s.commune} <small>SIMULADO · datos hipotéticos</small>
                   </span>
                   <button
                     className="icon-button"
-                    aria-label={`Eliminar sensor ${index + 1}`}
+                    aria-label={`Eliminar sensor ${s.id}`}
                     onClick={() =>
                       setSensors((current) =>
                         current.filter((item) => item.id !== s.id),
@@ -428,6 +437,7 @@ export default function MapView({
                   >
                     <Trash2 size={16} />
                   </button>
+                  <ExtensionBoundary><SensorReadings sensor={s} /></ExtensionBoundary>
                 </div>
               ))}
               <button
@@ -443,6 +453,10 @@ export default function MapView({
           )}
         </section>
       </div>
+      <ExtensionBoundary>
+        <TerritoryPanel territory={territory} stations={stations} rows={rows}
+          commune={contextCommune} setCommune={setContextCommune} setSelected={setSelected} />
+      </ExtensionBoundary>
       <div className="note">
         <strong>Una brecha de información no demuestra contaminación.</strong>{" "}
         Estos puntos no permiten inferir la calidad del aire de cada barrio ni

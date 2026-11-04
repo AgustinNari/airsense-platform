@@ -1,7 +1,7 @@
 # Estado
 
-Rediseño visual implementado en `feat/airsense-visual-redesign` sobre `320b744`. [SPEC.md](SPEC.md) fija alcance e invariantes y [PLAN.md](PLAN.md) registra el estado de verificación. Implementación y revisión con GPT-6.1 Sol high.
+Ampliación funcional implementada en `feat/airsense-visual-redesign`, conservando el rediseño y las correcciones previas. [SPEC.md](SPEC.md) fija alcance e invariantes y [README.md](README.md) documenta métodos, recorrido y validaciones.
 
-Typecheck, lint, check científico y build aprobados. [README.md](README.md) registra seis vistas verificadas en escritorio y cinco en viewport móvil emulado. El acceso al navegador local quedó deshabilitado en Work antes de verificar Metodología en móvil y repetir la comprobación visual tras los últimos ajustes de CSS.
+Nuevos paneles: contexto territorial y recomendaciones limitadas a información disponible/supuestos; evolución anual; hasta tres escenarios en memoria; HEPA interior independiente; fichas de sensores con muestras sintéticas. Ninguno modifica las concentraciones oficiales. Los errores de renderizado de paneles complementarios se aíslan del recorrido principal.
 
-Completar la revisión visual al recuperar el acceso al navegador. La entrega prevista es un PR separado contra `feat/airsense-prototype`. El PR #1 sigue abierto y `main` conserva la base vacía.
+Typecheck, lint, check de integridad y cálculos, y build aprobados. Se comprobaron funciones nuevas y recorrido principal en navegador, con revisión móvil emulada. Pendientes: teléfono físico, proyector, lector de pantalla y fallos inducidos de los límites de error. No se realizaron commits ni push en esta iteración. No se requieren servicios ni paquetes adicionales.

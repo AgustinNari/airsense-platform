@@ -10,6 +10,9 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { finalTraffic, money, number, survivingTrees } from "./model";
 import { Badge, MethodLink } from "./ui";
+import ExtensionBoundary from "./ExtensionBoundary";
+import HepaPanel from "./HepaPanel";
+import { ScenarioComparison, TreeEvolution } from "./SimulationExtras";
 const defaults = {
   vehicles: 10000,
   reduction: 20,
@@ -376,6 +379,13 @@ export default function Simulator({
           </div>
         </div>
       </section>
+      {tab === "trees" && <ExtensionBoundary>
+        <TreeEvolution planted={scenario.trees} survival={scenario.survival} years={scenario.years} />
+      </ExtensionBoundary>}
+      <ExtensionBoundary>
+        <ScenarioComparison scenario={scenario} tab={tab} invalid={Object.values(errors).some(Boolean)} />
+      </ExtensionBoundary>
+      <ExtensionBoundary><HepaPanel /></ExtensionBoundary>
     </>
   );
 }
